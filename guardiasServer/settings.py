@@ -40,7 +40,15 @@ INSTALLED_APPS = [
     'rest_framework',
     'usuario',
     'calendario',
-    'turno'
+    'turno',
+    'relevo',
+    'configuracion_notificacion',
+    'incidencia',
+    'escalamiento',
+    'usuario_grupo',
+    'grupo_escalamiento',
+    'historial_notificacion',
+    'template_notificacion'
 ]
 
 MIDDLEWARE = [
