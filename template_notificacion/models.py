@@ -10,5 +10,5 @@ class Template_notificacion(models.Model):
     mensaje_sms = models.CharField(max_length=45)
     estado = models.BooleanField(default=True)
     class Meta:
-        mananaged = False
+        managed = False
         db_table = 'template_notificacion'
