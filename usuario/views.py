@@ -21,7 +21,7 @@ class UserView(viewsets.ModelViewSet):
     
     #GET
     def list(self, request):
-        usuario = self.queryset.filter(activo=True)
+        usuario = self.queryset.filter(estado=True) #estado true es igual a activo
         serializer = self.get_serializer(usuario, many=True)
         return Response(serializer.data)
     
