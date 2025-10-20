@@ -16,6 +16,6 @@ class RelevoSerializer(serializers.ModelSerializer):
 class RelevoCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Relevo
-        fields = ['idrelevo','turno_origen', 'turno_destino', 'usuario_idusuario', 
-                  'usuario_relevo', 'motivo', 'estado', 'notas', 'fecha_solicitud',
+        fields = ['idrelevo','turno_origen', 'turno_destino',  
+                  'usuario_origen', 'usuario_destino', 'motivo', 'estado', 'notas', 'fecha_solicitud',
                   'fecha_respuesta', 'fecha_completado']
