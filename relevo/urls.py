@@ -1,9 +1,9 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
-from .views import UserView
+from .views import RelevoView
 
 router = DefaultRouter()
-router.register(r'', UserView, basename='usuario')
+router.register(r'', RelevoView, basename='relevo')
 
 urlpatterns = [
     path('', include(router.urls)),

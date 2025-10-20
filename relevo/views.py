@@ -17,7 +17,6 @@ class RelevoView(viewsets.ModelViewSet):
         return RelevoCreateSerializer
     
     #aceptar un relevo
-    @api_view(['POST'])
     def aceptar_relevo(self, request, pk=None):
         relevo = get_object_or_404(relevo, pk=pk)
         if relevo.estado != 'solicitado':
@@ -31,8 +30,7 @@ class RelevoView(viewsets.ModelViewSet):
         serializer = self.get_serializer(relevo)
         return Response(serializer.data)
     
-     # Obtener unn lista derelevos pendientes
-    @api_view(['GET'])
+    # Obtener unn lista derelevos pendientes
     def relevos_pendientes(self, request):
         pendientes = self.queryset.filter(estado='solicitado')
         serializer = self.get_serializer(pendientes, many=True)

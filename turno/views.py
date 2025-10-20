@@ -17,7 +17,7 @@ class TurnoView(viewsets.ModelViewSet):
             return TurnoCreateSerializer
         return TurnoSerializer
     
-    @api_view(['POST'])
+    #'POST'
     def create(request):
         serializer = TurnoSerializer(data=request.data)
         if serializer.is_valid():
@@ -25,8 +25,8 @@ class TurnoView(viewsets.ModelViewSet):
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
-    @api_view(['GET'])
-    def list(self, request): #list turnos activos
+  #list turnos activos
+    def list(self, request): 
         turnos = self.queryset.all()
         estado = request.query_params.get('estado', None)
         usuario = request.query_params.get('usuario', None)
@@ -40,7 +40,6 @@ class TurnoView(viewsets.ModelViewSet):
         return Response(serializer.data)
     
    #list turnos activos del dia
-    @api_view(['GET'])
     def activos_hoy(self, request):
         hoy = datetime.now().date()
         turnos = self.queryset.filter(
@@ -52,7 +51,7 @@ class TurnoView(viewsets.ModelViewSet):
 
 
 ### REVISAAAAAAR AHHHHHH
-    @api_view(['POST']) #TURNO PERDIDO y creacion de una incidencia
+    #TURNO PERDIDO y creacion de una incidencia
     def marcar_perdido(self, request, pk=None):
             turno = get_object_or_404(Turno, pk=pk)
             turno.estado = 'activo' #EL EStado del turno es activo pero el user no lo ha tomaod

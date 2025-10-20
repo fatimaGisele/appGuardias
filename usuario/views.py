@@ -19,19 +19,19 @@ class UserView(viewsets.ModelViewSet):
             return CreateUserSerializer
         return ChangePasswordSerializer
     
-    @api_view(['GET'])
+    #GET
     def list(self, request):
         usuario = self.queryset.filter(activo=True)
         serializer = self.get_serializer(usuario, many=True)
         return Response(serializer.data)
     
-    @api_view(['GET']) #filtra x id
+    #filtra x id
     def retrieve(self, request, pk=None):
         usuario = get_object_or_404(Usuario, pk=pk)
         serializer = self.get_serializer(usuario)
         return Response(serializer.data)
 
-    @api_view(['POST'])
+    
     def create(self, request):
         serializer = self.get_serializer(data=request.data)
         if serializer.is_valid():
@@ -40,7 +40,7 @@ class UserView(viewsets.ModelViewSet):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
 
-    @api_view(['PUT']) 
+    
     def update(self, request, pk=None):
         usuario = get_object_or_404(Usuario, pk=pk)
         serializer = self.get_serializer(usuario, data = request.data)
@@ -49,7 +49,7 @@ class UserView(viewsets.ModelViewSet):
             return Response(serializer.data)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
-    @api_view(['DELETE'])
+    
     def destroy(self, request, pk=None):
         usuario = get_object_or_404(Usuario, pk=pk)
         usuario.activo = False
@@ -57,7 +57,7 @@ class UserView(viewsets.ModelViewSet):
         return Response(status=status.HTTP_204_NO_CONTENT)
     
      
-    @api_view(['GET'])
+    
     def turnos_usuario(self, request, pk=None):
         usuario = get_object_or_404(Usuario, pk=pk)       
         turnos = Turno.objects.filter(usuario_idusuario=usuario)

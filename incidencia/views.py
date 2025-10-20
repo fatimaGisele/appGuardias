@@ -16,7 +16,6 @@ class IncidenciaView(viewsets.ModelViewSet):
         return IncidenciaSerializer
     
     #filtra y lista por el estado y la gravedad
-    @api_view(['GET'])
     def list(self, request):
         incidencia = self.queryset.all()
         gravedad = request.query_params.get('gravedad', None)
@@ -30,7 +29,6 @@ class IncidenciaView(viewsets.ModelViewSet):
         return Response(serializer.data)
     
     #VA A marcar una incidencia como resuelta
-    @api_view(['POST'])
     def resueltas(self, request, pk=None):
         incidencia = get_object_or_404(Incidencia, pk=pk)
         incidencia.estado = 'resuelta'
@@ -41,7 +39,6 @@ class IncidenciaView(viewsets.ModelViewSet):
         return Response(serializer.data)
     
     # Filtra para obtener incidencias críticas abiertas
-    @api_view(['GET'])
     def incidencias_criticas_abiertas(self, request):
         criticas = self.queryset.filter(
             gravedad='critica',
