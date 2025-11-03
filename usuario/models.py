@@ -11,7 +11,7 @@ class Usuario(models.Model):
     estado = models.BooleanField(default=True)
     fecha_creacion = models.DateTimeField(auto_now_add=True)
     fecha_actualizacion = models.DateTimeField(auto_now=True)
-    password = models.CharField(max_length=45)
+    password = models.CharField(max_length=150)
 
     class Meta:
         managed = False
