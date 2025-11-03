@@ -1,5 +1,6 @@
 from rest_framework import serializers
 from .models import Usuario
+import bcrypt
 
 #listar
 class UserSerializer(serializers.ModelSerializer):
@@ -16,22 +17,31 @@ class CreateUserSerializer(serializers.ModelSerializer):
             model = Usuario
             fields = ['idusuario','nombre','apellido','email','telefono','rol','estado',
                         'fecha_creacion','fecha_actualizacion','password','password2']
-            
-            def validatePsw(self, data):
+            extra_kwargs = {
+               'password' : {'write_only': True}
+            }
+
+        def validatePsw(self, data):
                 if data['password'] !=  data['password2']:
                     raise serializers.ValidationError("Las contraseñas no coinciden")
                 return data
 
-            def validate_email(self, value):
+        def validate_email(self, value):
                 if Usuario.objects.filter(email=value).exists():
                     raise serializers.ValidationError("Este email ya existe")
                 return value
             
-            def create(self, validated_data):
+        def create(self, validated_data):
                 validated_data.pop('password2')
-                password = validated_data.pop('password')
+                raw_password = validated_data.pop('password')
+
+                hashed_password = bcrypt.hashpw(
+                raw_password.encode('utf-8'),
+                 bcrypt.gensalt()
+                ).decode('utf-8')
+
                 usuario = Usuario(**validated_data)
-                usuario.set_password(password)
+                usuario.password = hashed_password
                 usuario.save()
                 return usuario
             
