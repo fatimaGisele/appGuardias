@@ -7,6 +7,7 @@ from .models import Usuario
 from turno.models import Turno
 from turno.serializers import TurnoListSerializer
 import bcrypt
+from rest_framework_simplejwt.tokens import RefreshToken
 
 # Create your views here.
 class UserView(viewsets.ModelViewSet):
@@ -52,6 +53,7 @@ class UserView(viewsets.ModelViewSet):
         except Usuario.DoesNotExist:
             return Response({'error':'el email NO EXISTE'}, status=status.HTTP_401_UNAUTHORIZED)
         if bcrypt.checkpw(password.encode('utf-8'), usuario.password.encode('UTF-8')):
+            #refreshToken = 
             usuarioData = {
                 "idusuario": usuario.idusuario,
                 "nombre": usuario.nombre,
