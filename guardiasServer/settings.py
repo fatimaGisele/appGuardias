@@ -88,7 +88,7 @@ WSGI_APPLICATION = 'guardiasServer.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME':  'mydb',
+        'NAME':  'guardias_db',
         'USER' : 'root',
         'PASSWORD': 'mila',
         'HOST': 'localhost',
@@ -96,7 +96,7 @@ DATABASES = {
     }
 }
 
-AUTH_USER_MODEL = 'usuario.User'
+AUTH_USER_MODEL = 'usuario.Usuario'
 
 # Password validation
 # https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
