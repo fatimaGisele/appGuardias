@@ -5,18 +5,16 @@ from grupo_escalamiento.models import Grupo_escalamiento
 # Create your models here.
 class Usuario_grupo(models.Model):
     idusuario_grupo = models.AutoField(primary_key=True)
-    idusuario = models.ForeignKey(
+    usuario_id = models.ForeignKey(
         Usuario, 
-        on_delete=models.DO_NOTHING,
-        db_column='idusuario'
+        on_delete=models.CASCADE
     )
-    idgrupo_escalamiento = models.ForeignKey(
+    grupo_escalamiento_id = models.ForeignKey(
         Grupo_escalamiento,
-        on_delete= models.DO_NOTHING,
-        db_column='idgrupo_escalamiento'
+        on_delete= models.CASCADE
     )
-    prioridad = models.IntegerField
-    estado =models.BooleanField(default=True)
+    prioridad = models.IntegerField()
+    activo =models.BooleanField(default=True)
     class Meta:
-        managed =False
         db_table = 'usuario_grupo'
+        managed = True

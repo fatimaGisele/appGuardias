@@ -5,19 +5,18 @@ from usuario.models import Usuario
 
 class Configuracion_notificacion(models.Model):
     idconfiguracion_notificacion = models.AutoField(primary_key=True)
-    usuario_idusuario = models.ForeignKey(
+    usuario_id = models.ForeignKey(
         Usuario,
-        on_delete= models.DO_NOTHING,
-        db_column= 'usuario_idusuario'
+        on_delete= models.CASCADE
     )
     tipo_de_evento = models.CharField(max_length=45)
     metodo = models.CharField(max_length=45)
-    estado = models.BooleanField(default= True)
-    minutos_antes_turno = models.IntegerField
-    intentos_maximo = models.IntegerField
-    intervalo_reintesto = models.IntegerField
+    activo = models.BooleanField(default= True)
+    minutos_antes_turno = models.IntegerField(default=30)
+    intentos_maximo = models.IntegerField(default=3)
+    intervalo_reintesto = models.IntegerField(default=10)
 
     class Meta:
-        managed = False
+        managed = True
         db_table = 'configuracion_notificacion'
 
