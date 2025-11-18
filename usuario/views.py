@@ -23,7 +23,7 @@ class UserView(viewsets.ModelViewSet):
     
     #GET
     def list(self, request):
-        usuario = self.queryset.filter(estado=True) #estado true es igual a activo
+        usuario = self.queryset.filter(activo=True) #estado true es igual a activo
         serializer = self.get_serializer(usuario, many=True)
         return Response(serializer.data)
     
@@ -47,21 +47,23 @@ class UserView(viewsets.ModelViewSet):
         password = request.data.get('password')
         if not email or not password:
             return Response({'error':'el email o la contraseña son incorrectos'}, status=status.HTTP_400_BAD_REQUEST)
-        
         try:
             usuario = Usuario.objects.get(email = email)
         except Usuario.DoesNotExist:
             return Response({'error':'el email NO EXISTE'}, status=status.HTTP_401_UNAUTHORIZED)
         if bcrypt.checkpw(password.encode('utf-8'), usuario.password.encode('UTF-8')):
             refreshToken = RefreshToken.for_user(usuario)
-            usuarioData = {
+            usuarioData = ({
+               # "refreshToken" : status(refreshToken),
+                #"access": str(refreshToken.access_token),
+                "usuario": {
                 "idusuario": usuario.idusuario,
                 "nombre": usuario.nombre,
                 "apellido": usuario.apellido,
                 "email": usuario.email,
                 "telefono": usuario.telefono,
-                "rol": usuario.rol
-            }
+                "rol": usuario.rol}
+            })
             return Response(usuarioData, status=status.HTTP_200_OK)
         else:
             return Response({'error':'el email o la password NO EXISTE'}, status=status.HTTP_401_UNAUTHORIZED)
