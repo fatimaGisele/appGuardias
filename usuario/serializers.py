@@ -1,12 +1,13 @@
 from rest_framework import serializers
 from .models import Usuario
+from django.contrib.auth import authenticate
 import bcrypt
 
 #listar
 class UserSerializer(serializers.ModelSerializer):
       class Meta:
         model = Usuario
-        fields = ['idusuario','nombre','apellido','email','telefono','rol','estado',
+        fields = ['idusuario','nombre','apellido','email','telefono','rol','activo',
                       'fecha_creacion','fecha_actualizacion']
         
 #crear y validar
@@ -15,7 +16,7 @@ class CreateUserSerializer(serializers.ModelSerializer):
         password2 = serializers.CharField(write_only=True)
         class Meta:
             model = Usuario
-            fields = ['idusuario','nombre','apellido','email','telefono','rol','estado',
+            fields = ['idusuario','nombre','apellido','email','telefono','rol','activo',
                         'fecha_creacion','fecha_actualizacion','password','password2']
             extra_kwargs = {
                'password' : {'write_only': True}
@@ -45,7 +46,7 @@ class CreateUserSerializer(serializers.ModelSerializer):
                 usuario.save()
                 return usuario
             
-        
+    
  #cambiar constraseña       
 class ChangePasswordSerializer(serializers.Serializer):
         vieja_password = serializers.CharField(write_only=True)
