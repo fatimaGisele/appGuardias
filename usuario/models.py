@@ -23,6 +23,7 @@ class UsuarioManager(BaseUserManager):
         return self.create_user(email, nombre, apellido, password, **extra_fields)
 
 class Usuario(AbstractUser):
+    username = None
     idusuario = models.AutoField(primary_key=True)
     nombre = models.CharField(max_length=45)
     apellido = models.CharField(max_length=150)
@@ -42,7 +43,7 @@ class Usuario(AbstractUser):
     objects = UsuarioManager()
 
     USERNAME_FIELD = 'email'
-    REQUIRED_FIELDS = ['username', 'nombre', 'apellido']
+    REQUIRED_FIELDS = ['nombre', 'apellido']
     class Meta:
         managed= True
         db_table = 'usuario'

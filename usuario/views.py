@@ -51,11 +51,13 @@ class UserView(viewsets.ModelViewSet):
             usuario = Usuario.objects.get(email = email)
         except Usuario.DoesNotExist:
             return Response({'error':'el email NO EXISTE'}, status=status.HTTP_401_UNAUTHORIZED)
+        
         if bcrypt.checkpw(password.encode('utf-8'), usuario.password.encode('UTF-8')):
             refreshToken = RefreshToken.for_user(usuario)
+            access = refreshToken.access_token
             usuarioData = ({
-               # "refreshToken" : status(refreshToken),
-                #"access": str(refreshToken.access_token),
+                "refreshToken" : str(refreshToken),
+                "access": str(access),
                 "usuario": {
                 "idusuario": usuario.idusuario,
                 "nombre": usuario.nombre,
