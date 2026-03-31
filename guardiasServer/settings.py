@@ -39,6 +39,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',
+    'myauth',
     'usuario',
     'calendario',
     'turno',
@@ -154,3 +155,7 @@ STATIC_URL = 'static/'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
+# {
+#   "python.defaultInterpreterPath": "C:\\Users\\Usuario\\Desktop\\DjangoP\\guardiasServer\\venv\\Scripts\\python.exe",
+#   "python.analysis.extraPaths": []
+# }
