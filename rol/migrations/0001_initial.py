@@ -12,16 +12,15 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.CreateModel(
-            name='Grupo_escalamiento',
+            name='Rol',
             fields=[
-                ('idgrupo_escalamiento', models.AutoField(primary_key=True, serialize=False)),
-                ('nombre', models.CharField(max_length=45)),
+                ('id_rol', models.AutoField(primary_key=True, serialize=False)),
+                ('nombre', models.CharField(max_length=50, unique=True)),
                 ('descripcion', models.TextField(blank=True, null=True)),
-                ('num_orden_escalamiento', models.IntegerField()),
                 ('activo', models.BooleanField(default=True)),
             ],
             options={
-                'db_table': 'grupo_escalamiento',
+                'db_table': 'rol',
                 'managed': True,
             },
         ),

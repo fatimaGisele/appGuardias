@@ -5,6 +5,12 @@ from escalamiento.models import Escalamiento
 
 # Create your models here.
 class Historial_notificacion(models.Model):
+    ESTADO_CHOICES = [
+        ("enviado", "Enviado"),
+        ("entregado", "Entregado"),
+        ("leido", "Leído"),
+        ("fallido", "Fallido"),
+    ]
     idhistorial_notificacion = models.AutoField(primary_key=True)
     usuario_id = models.ForeignKey(
         Usuario,
@@ -25,12 +31,8 @@ class Historial_notificacion(models.Model):
     contenido = models.TextField(blank=True, null=True)
     estado = models.CharField(
         max_length=45,
-        choices=[
-        ("enviado", "Enviado"),
-        ("entregado", "Entregado"),
-        ("leido", "Leído"),
-        ("fallido", "Fallido"),
-    ])
+        choices=ESTADO_CHOICES,
+        default="enviado")
     mensaje_error = models.TextField(blank=True, null=True)
     fecha_envio = models.DateTimeField(auto_now_add=True)
     fecha_lectura = models.DateTimeField(blank=True, null=True)

@@ -4,6 +4,12 @@ from incidencia.models import Incidencia
 
 # Create your models here.
 class Escalamiento(models.Model):
+    ESTADO_CHOICES = [
+            ('pendiente', 'Pendiente'),
+            ('enviado', 'Enviado'),
+            ('confirmado', 'Confirmado'),
+            ('fallido', 'Fallido'),
+        ]
     idescalamiento = models.AutoField(primary_key=True)
     incidencia_id = models.ForeignKey(
         Incidencia,
@@ -17,12 +23,8 @@ class Escalamiento(models.Model):
     tipo_notificacion = models.CharField(max_length=45)
     estado =models.CharField(
         max_length=45,
-        choices=[
-            ('pendiente', 'Pendiente'),
-            ('enviado', 'Enviado'),
-            ('confirmado', 'Confirmado'),
-            ('fallido', 'Fallido'),
-        ])
+        choices=ESTADO_CHOICES,
+        default="enviado")
     mensaje_enviado = models.TextField(blank=True, null=True)
     fecha_escalamiento = models.DateTimeField(auto_now=True)
     fecha_respuesta  = models.DateTimeField(blank=True, null=True)

@@ -4,6 +4,12 @@ from usuario.models import Usuario
 
 # Create your models here.
 class Relevo(models.Model):
+    ESTADO_CHOICES = [
+            ('solicitado', 'Solicitado'),
+            ('aceptado', 'Aceptado'),
+            ('rechazado', 'Rechazado'),
+            ('completado', 'Completado'),
+        ]
     idrelevo = models.AutoField(primary_key=True)
     turno_origen = models.ForeignKey(
         Turno,
@@ -28,12 +34,7 @@ class Relevo(models.Model):
     motivo = models.CharField(max_length=45)
     estado = models.CharField(
         max_length=45,
-        choices=[
-            ('solicitado', 'Solicitado'),
-            ('aceptado', 'Aceptado'),
-            ('rechazado', 'Rechazado'),
-            ('completado', 'Completado'),
-        ])
+        choices=ESTADO_CHOICES)
     notas = models.TextField(blank=True, null=True)
     fecha_solicitud = models.DateTimeField(auto_now_add=True)
     fecha_respuesta = models.DateTimeField(blank=True, null=True)
