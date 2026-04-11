@@ -17,7 +17,7 @@ class Incidencia(models.Model):
         ('cerrada', 'Cerrada')
         ]
     idincidencia = models.AutoField(primary_key=True)
-    turno_id = models.ForeignKey(
+    turno = models.ForeignKey(
         Turno,
         on_delete = models.CASCADE
     ) 

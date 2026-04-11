@@ -11,7 +11,7 @@ class Escalamiento(models.Model):
             ('fallido', 'Fallido'),
         ]
     idescalamiento = models.AutoField(primary_key=True)
-    incidencia_id = models.ForeignKey(
+    incidencia = models.ForeignKey(
         Incidencia,
         on_delete= models.CASCADE
     )    

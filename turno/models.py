@@ -1,6 +1,7 @@
 from django.db import models
 from calendario.models import Calendario
 from usuario.models import Usuario
+from grupo_escalamiento.models import Grupo_escalamiento
 
 
 # Create your models here.
@@ -12,6 +13,13 @@ class Turno(models.Model):
         ('perdido', 'Perdido'),
     ]
     idturno = models.AutoField(primary_key=True)
+    grupo_escalamiento = models.ForeignKey(
+        Grupo_escalamiento,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='turnos'
+    )
     usuario_asignado = models.ForeignKey(
         Usuario, 
         on_delete=models.CASCADE,
@@ -22,7 +30,7 @@ class Turno(models.Model):
         on_delete=models.CASCADE,
         related_name="turnos_creados",
         null=True,)
-    calendario_id = models.ForeignKey(
+    calendario = models.ForeignKey(
         Calendario,
         on_delete=models.CASCADE
     )
@@ -43,4 +51,4 @@ class Turno(models.Model):
         managed = True
 
     def __str__(self):
-        return self.nombre_turno
+        return self.nombre

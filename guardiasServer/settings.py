@@ -39,6 +39,8 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',
+    'twilio',
+    'django_apscheduler',
     'rol',
     'myauth',
     'usuario',
@@ -156,7 +158,7 @@ STATIC_URL = 'static/'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-# {
-#   "python.defaultInterpreterPath": "C:\\Users\\Usuario\\Desktop\\DjangoP\\guardiasServer\\venv\\Scripts\\python.exe",
-#   "python.analysis.extraPaths": []
-# }
+
+# TWILIO_ACCOUNT_SID = 'ACxxxxxxxxxxxxxxxx'  # de tu cuenta Twilio
+# TWILIO_AUTH_TOKEN = 'xxxxxxxxxxxxxxxx'
+# TWILIO_WHATSAPP_FROM = 'whatsapp:+14155238886'  # número sandbox de Twilio

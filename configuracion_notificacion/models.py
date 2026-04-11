@@ -5,7 +5,7 @@ from usuario.models import Usuario
 
 class Configuracion_notificacion(models.Model):
     idconfiguracion_notificacion = models.AutoField(primary_key=True)
-    usuario_id = models.ForeignKey(
+    usuario = models.ForeignKey(
         Usuario,
         on_delete= models.CASCADE
     )

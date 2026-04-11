@@ -12,12 +12,12 @@ class Historial_notificacion(models.Model):
         ("fallido", "Fallido"),
     ]
     idhistorial_notificacion = models.AutoField(primary_key=True)
-    usuario_id = models.ForeignKey(
+    usuario = models.ForeignKey(
         Usuario,
         on_delete= models.CASCADE
     )   
-    relevo_id = models.ForeignKey(
-            Relevo,
+    relevo = models.ForeignKey(
+        Relevo,
         on_delete= models.CASCADE,
         null=True, 
         blank=True

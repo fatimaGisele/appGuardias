@@ -1,8 +1,10 @@
 from rest_framework.response import Response
 from rest_framework.decorators import api_view
 from rest_framework import status
+from django.shortcuts import get_object_or_404
 from usuario.serializers import CreateUserSerializer
 from usuario.models import Usuario
+from rol.models import Rol
 import bcrypt
 from rest_framework_simplejwt.tokens import RefreshToken
 
@@ -12,7 +14,7 @@ def register(request):
     serializer = CreateUserSerializer(data=request.data)
     if serializer.is_valid():
         serializer.save()
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response({"message":"'Usuario creado correctamente"}, status=status.HTTP_201_CREATED)
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
 @api_view(['POST'])

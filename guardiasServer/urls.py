@@ -9,7 +9,7 @@ from rest_framework_simplejwt.views import (
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('auth/', include('myauth.urls')),
-    path('rol/', include('rol.urls'))
+    path('rol/', include('rol.urls')),
     path('usuarios/', include('usuario.urls')),
     path('turnos/', include('turno.urls')),
     path('incidencias/', include('incidencia.urls')),
