@@ -1,7 +1,8 @@
 from incidencia.models import Incidencia
 from escalamiento.models import Escalamiento
 from usuario_grupo.models import Usuario_grupo
-from guardiasServer.notificaciones.services import enviar_whatsapp
+from relevo.models import Relevo
+from guardiasServer.notificaciones.services import enviar_whatsapp, enviar_msj_relevo
 from django.utils import timezone
 
 def notificar_turno_perdido(turno):
@@ -49,3 +50,21 @@ def notificar_turno_perdido(turno):
     enviado = enviar_whatsapp(jefecito, mensaje, escalamiento)
     escalamiento.estado = 'enviado' if enviado else 'fallido'
     escalamiento.save()
+    notificar_relevo(turno)
+
+
+#se notifica al relevo 
+def notificar_relevo(turno):
+    relevo = Relevo.objects.filter(
+        turno_origen = turno,
+        estado = 'solicitado'
+    ).select_related('usuario_destino').first()
+    if not relevo:
+        return
+    mensaje = (
+        f'*Guardia disponible*\n'
+        f'El turno *{turno.nombre}* quedó sin cobertura.\n'
+        f'Fecha: {turno.fecha_inicio.strftime("%d/%m/%Y %H:%M")}\n'
+        f'Podés aceptar o rechazar el turno desde la app.'
+    )
+    enviar_msj_relevo(relevo.usuario_destino, mensaje)

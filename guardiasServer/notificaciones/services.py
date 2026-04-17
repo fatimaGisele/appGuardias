@@ -33,4 +33,18 @@ def enviar_whatsapp(usuario, msg, escalamiento):
 
     return estado == 'enviado'
 
+
+def enviar_msj_relevo(usuario, mensaje):
+    cliente = Client(settings.TWILIO_ACCOUNT_SID, settings.TWILIO_AUTH_TOKEN)
+    try:
+        cliente.messages.create(
+            from_=settings.TWILIO_WHATSAPP_FROM,
+            to= f"whatsapp:+{usuario.telefono}",
+            body=mensaje
+        )
+        return True
+    except Exception as e:
+        logger.error(f"el mensaje fallo {e}")
+        return False 
+
         
