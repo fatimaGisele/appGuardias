@@ -1,0 +1,75 @@
+import json
+from google.oauth2.credentials import Credentials
+from google.auth.transport.requests import Request
+from googleapiclient.discovery import build
+from google_auth_oauthlib.flow import Flow
+from django.conf import settings
+from calendario.models import Calendario
+
+def get_flow():
+    return Flow.from_client_secrets_file(
+        settings.GOOGLE_CREDENTIALS_FILE,
+        scopes=  settings.GOOGLE_SCOPES,
+        redirect_uri = settings.GOOGLE_REDIRECT_URI
+    )
+
+def get_credentials(calendario):
+    config = json.loads(calendario.configuracion_api)
+    cred = Credentials(
+        token = config['token'],
+        refresh_token= config['refresh_token'],
+        token_uri = 'https://oauth2.googleapis.com/token',
+        client_id = config['client_id'],
+        client_secret = config['client_secret'],
+        scopes = settings.GOOGLE_SCOPES
+    )
+    if cred.expired and cred.refresh_token:
+        cred.refresh(Request())
+        #guardamos el token nuevoooo
+        config['token'] = cred.token
+        calendario.configuracion_api = json.dumps(config)
+        calendario.save()
+
+    return cred
+
+def crear_evento_google(turno):
+    try:
+        calendario = turno.calendario
+        if not calendario or not calendario.configuracion_api:
+            return None
+        creds = get_credentials(calendario)
+        service = build('calendar', 'v3', credentials=creds)
+
+        evento = {
+            'summary': f'Turno: {turno.nombre}',
+            'description': turno.descripcion or '',
+            'start': {
+                'dateTime': turno.fecha_inicio.isoformat(),
+                'timeZone': 'America/Argentina/Buenos_Aires',
+            },
+            'end': {
+                'dateTime': turno.fecha_fin.isoformat(),
+                'timeZone': 'America/Argentina/Buenos_Aires',
+            },
+            'attendees': [
+                {'email': turno.usuario_asignado.email},
+            ],
+            'reminders': {
+                'useDefault': False,
+                'overrides': [
+                    {'method': 'popup', 'minutes': 30},  # recordatorio 30 min antes
+                ],
+            },
+        }
+
+        evento_creado = service.events().insert(
+            calendarId='primary',
+            body=evento,
+            sendUpdates='all'
+        ).execute()
+        return evento_creado.get('id')
+    except Exception as e:
+        import logging
+        logging.getLogger(__name__).error(f"Error creando evento en Google Calendar: {e}")
+        return None
+        

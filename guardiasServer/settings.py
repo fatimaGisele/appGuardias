@@ -158,7 +158,16 @@ STATIC_URL = 'static/'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
+GOOGLE_CREDENTIALS_FILE = BASE_DIR / 'credentials.json'
+GOOGLE_REDIRECT_URI = 'http://localhost:8000/calendario/oauth/callback/'
+GOOGLE_SCOPES = ['https://www.googleapis.com/auth/calendar']
 
 # TWILIO_ACCOUNT_SID = 'ACxxxxxxxxxxxxxxxx'  # de tu cuenta Twilio
 # TWILIO_AUTH_TOKEN = 'xxxxxxxxxxxxxxxx'
 # TWILIO_WHATSAPP_FROM = 'whatsapp:+14155238886'  # número sandbox de Twilio
+
+#  recordar q tengas el dominio de producción o el deep link de Flutter mobile, 
+#  hay q agregr las URIs adicionales ir a + Agregar URI:
+
+#  https://tudominio.com/calendario/oauth/callback/ ← paraa producción
+#  guardias://oauth/callback ← cuando arranque con Flutter mobile recordaaaar!!!! ahhhhh

@@ -2,16 +2,22 @@ from django.utils import timezone
 from django.shortcuts import get_object_or_404
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
-from rest_framework.decorators import api_view, permission_classes
+from rest_framework.decorators import api_view, permission_classes, action
 from rest_framework import status, viewsets
 from .serializers import TurnoSerializer, TurnoCreateSerializer, TurnoListSerializer
 from .models import Turno
 from incidencia.models import Incidencia
 from .services import notificar_turno_perdido
+from .permission import EsJefe
 # Create your views here.
 class TurnoView(viewsets.ModelViewSet):
     queryset = Turno.objects.all()
     serializer_class = TurnoSerializer
+
+    def get_permissions(self): #solo los jefecitos pueden crear el turno y asignar 
+        if self.action == 'create':
+            return [EsJefe()] 
+        return [IsAuthenticated()]
     
     def get_serializer_class(self):
         if self.action == 'list':
@@ -22,7 +28,10 @@ class TurnoView(viewsets.ModelViewSet):
     
     #'POST'
     def create(self, request):
-        serializer = TurnoSerializer(data=request.data)
+        serializer = TurnoCreateSerializer(
+            data=request.data,
+            context = {'request': request}
+            )
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
@@ -43,6 +52,7 @@ class TurnoView(viewsets.ModelViewSet):
         return Response(serializer.data)
     
    #list turnos activos del dia
+    @action(detail=False, methods=['get'], url_path='activos_hoy')
     def activos_hoy(self, request):
         hoy = timezone.now().date()
         turnos = self.queryset.filter(
@@ -55,6 +65,7 @@ class TurnoView(viewsets.ModelViewSet):
 
 ### REVISAAAAAAR AHHHHHH
     #TURNO PERDIDO y creacion de una incidencia
+    @action(detail=True, methods=['post'], url_path='marcar_perdido')
     def marcar_perdido(self, request, pk=None):
         turno = get_object_or_404(Turno, pk=pk)
 
@@ -83,20 +94,20 @@ class TurnoView(viewsets.ModelViewSet):
         })
     
     
-    @api_view(['POST'])
-    @permission_classes([IsAuthenticated])
-    def checkin(request, turno_id):
-        try:
-            turno = Turno.objects.get(
-                idturno=turno_id,
-                usuario_asignado=request.user,  
-                estado='programado'
-            )
-        except Turno.DoesNotExist:
-            return Response({'error': 'Turno no encontrado o ya procesado'}, status=status.HTTP_404_NOT_FOUND)
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def checkin(request, turno_id):
+    try:
+        turno = Turno.objects.get(
+            idturno=turno_id,
+            usuario_asignado=request.user,  
+            estado='programado'
+        )
+    except Turno.DoesNotExist:
+        return Response({'error': 'Turno no encontrado o ya procesado'}, status=status.HTTP_404_NOT_FOUND)
 
-        turno.estado = 'activo'
-        turno.save()
+    turno.estado = 'activo'
+    turno.save()
 
-        return Response({'mensaje': 'Check-in realizado correctamente'}, status=status.HTTP_200_OK)
+    return Response({'mensaje': 'Check-in realizado correctamente'}, status=status.HTTP_200_OK)
         
