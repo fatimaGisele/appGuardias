@@ -4,7 +4,7 @@ from google.auth.transport.requests import Request
 from googleapiclient.discovery import build
 from google_auth_oauthlib.flow import Flow
 from django.conf import settings
-from calendario.models import Calendario
+from .models import Calendario
 
 def get_flow():
     return Flow.from_client_secrets_file(
@@ -14,7 +14,7 @@ def get_flow():
     )
 
 def get_credentials(calendario):
-    config = json.loads(calendario.configuracion_api)
+    config = json.loads(calendario.config_api)
     cred = Credentials(
         token = config['token'],
         refresh_token= config['refresh_token'],
@@ -27,7 +27,7 @@ def get_credentials(calendario):
         cred.refresh(Request())
         #guardamos el token nuevoooo
         config['token'] = cred.token
-        calendario.configuracion_api = json.dumps(config)
+        calendario.config_api = json.dumps(config)
         calendario.save()
 
     return cred
@@ -35,7 +35,7 @@ def get_credentials(calendario):
 def crear_evento_google(turno):
     try:
         calendario = turno.calendario
-        if not calendario or not calendario.configuracion_api:
+        if not calendario or not calendario.config_api:
             return None
         creds = get_credentials(calendario)
         service = build('calendar', 'v3', credentials=creds)

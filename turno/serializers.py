@@ -3,7 +3,7 @@ from .models import Turno
 from usuario.models import Usuario
 from relevo.models import Relevo
 from usuario.serializers import UserSerializer
-
+from calendario.services import crear_evento_google
     
 class TurnoSerializer(serializers.ModelSerializer):
     # Mostra los datos del usuario asignado
@@ -32,7 +32,8 @@ class TurnoCreateSerializer(serializers.ModelSerializer):
             'grupo_escalamiento',
             'usuario_asignado',   
             'usuario_relevo_id'
-            ]    
+            ]   
+         
     def validate(self, data):
         if data['usuario_asignado'] == data['usuario_relevo_id']:
             raise serializers.ValidationError(
@@ -62,6 +63,7 @@ class TurnoCreateSerializer(serializers.ModelSerializer):
             motivo = 'relevo solicitado',
             estado = 'solicitado'
         )
+        crear_evento_google(turno)
         return turno
 
             

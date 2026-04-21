@@ -12,16 +12,25 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 
 from pathlib import Path
 from datetime import timedelta
+import environ
+import os
+
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+env = environ.Env()
+environ.Env.read_env(os.path.join(BASE_DIR/ '.env'))
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-_$e1(i5s(8t)yakk&n!%lq*va_f=wo3(36!fj%a10qw--&kg!6'
+SECRET_KEY = env('SECRET_KEY')
+DEBUG = env.bool('DEBUG', default=False)
+GOOGLE_CREDENTIALS_FILE = BASE_DIR / env('GOOGLE_CREDENTIALS_FILE')
+GOOGLE_REDIRECT_URI = env('GOOGLE_REDIRECT_URI')
+GOOGLE_SCOPES = env.list('GOOGLE_SCOPES') 
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -158,9 +167,6 @@ STATIC_URL = 'static/'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-GOOGLE_CREDENTIALS_FILE = BASE_DIR / 'credentials.json'
-GOOGLE_REDIRECT_URI = 'http://localhost:8000/calendario/oauth/callback/'
-GOOGLE_SCOPES = ['https://www.googleapis.com/auth/calendar']
 
 # TWILIO_ACCOUNT_SID = 'ACxxxxxxxxxxxxxxxx'  # de tu cuenta Twilio
 # TWILIO_AUTH_TOKEN = 'xxxxxxxxxxxxxxxx'
