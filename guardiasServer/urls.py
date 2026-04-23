@@ -13,7 +13,8 @@ urlpatterns = [
     path('usuarios/', include('usuario.urls')),
     path('turnos/', include('turno.urls')),
     path('incidencias/', include('incidencia.urls')),
-    path('relevos/', include('relevo.urls')),   
+    path('relevos/', include('relevo.urls')),  
+    path('calendario/', include('calendario.urls')), 
     path('token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),  
 ]
