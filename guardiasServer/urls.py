@@ -15,6 +15,8 @@ urlpatterns = [
     path('incidencias/', include('incidencia.urls')),
     path('relevos/', include('relevo.urls')),  
     path('calendario/', include('calendario.urls')), 
+    path('grupo_escalamiento/', include('grupo_escalamiento.urls')),
+    path('usuario_grupo/', include('usuario_grupo.urls')),
     path('token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),  
 ]
