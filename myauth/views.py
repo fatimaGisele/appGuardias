@@ -41,7 +41,8 @@ def login(request):
             "apellido": usuario.apellido,
             "email": usuario.email,
             "telefono": usuario.telefono,
-            "rol": usuario.rol}
+            "rol": usuario.rol.nombre,
+            "rol_id": usuario.rol.idrol,}
         })
         return Response(usuarioData, status=status.HTTP_200_OK)
     else:

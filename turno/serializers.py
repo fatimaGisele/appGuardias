@@ -16,7 +16,7 @@ class TurnoSerializer(serializers.ModelSerializer):
 class TurnoCreateSerializer(serializers.ModelSerializer):
     usuario_relevo_id = serializers.PrimaryKeyRelatedField(
         queryset=Usuario.objects.filter(
-            rol__nombre__in=['lider', 'encargado'],  
+            rol__nombre__in=['relevo'],  
             activo=True
         ),
         write_only=True
@@ -46,12 +46,12 @@ class TurnoCreateSerializer(serializers.ModelSerializer):
         )
         return data
         
-    def create(self, validate_data):
-        usuario_relevo = validate_data.pop('usuario_relevo_id')
+    def create(self, validated_data):
+        usuario_relevo = validated_data.pop('usuario_relevo_id')
         request = self.context.get('request')
 
         turno = Turno.objects.create(
-            **validate_data,
+            **validated_data,
             usuario_creador = request.user
         )
 
@@ -87,3 +87,4 @@ class TurnoListSerializer(serializers.ModelSerializer):
             'fecha_fin',
             'fecha_creacion',
             'fecha_actualizacion']
+

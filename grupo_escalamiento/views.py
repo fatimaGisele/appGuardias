@@ -6,4 +6,4 @@ from rest_framework.permissions import IsAuthenticated
 class GrupoEscalamientoView(viewsets.ModelViewSet):
     queryset = Grupo_escalamiento.objects.all()
     serializer_class = GrupoEscalamientoSerializer
-    permission_classes = [IsAuthenticated]
+    #permission_classes = [IsAuthenticated]

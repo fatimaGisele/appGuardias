@@ -8,7 +8,7 @@ from .serializers import UsuarioGrupoSerializer
 class UsuarioGrupoView(viewsets.ModelViewSet):
     queryset = Usuario_grupo.objects.all()
     serializer_class = UsuarioGrupoSerializer
-    permission_classes = [IsAuthenticated]
+    #permission_classes = [IsAuthenticated]
 
     def list(self, request): #filtrar x grupo
         queryset = self.queryset
@@ -35,4 +35,4 @@ class UsuarioGrupoView(viewsets.ModelViewSet):
         usuario_grupo = self.get_object()
         usuario_grupo.activo = False
         usuario_grupo.save()
-        return Response({'mensaje': 'Usuario activado en el grupo'})
+        return Response({'mensaje': 'Usuario desactivado en el grupo'})

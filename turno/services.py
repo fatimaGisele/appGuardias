@@ -26,30 +26,29 @@ def notificar_turno_perdido(turno):
 
     for usuario_grupo in encargados:
         jefecito = usuario_grupo.usuario
-
-    #se crea el escalamiento ahhhhh!!!
-    escalamiento = Escalamiento.objects.create(
-        incidencia = incidencia,
-        usuario_notificado = jefecito,
-        nivel = usuario_grupo.prioridad,
-        tipo_notificacion = 'msj whatsapp',
-        estado = 'pendiente',
-        mensaje_enviado=f'El responsable {turno.usuario_asignado.nombre} no se presentó a su turno {turno.nombre_turno}.',
-        fecha_escalamiento = timezone.now() 
-    )
+        #se crea el escalamiento ahhhhh!!!
+        escalamiento = Escalamiento.objects.create(
+            incidencia = incidencia,
+            usuario_notificado = jefecito,
+            nivel = usuario_grupo.prioridad,
+            tipo_notificacion = 'msj whatsapp',
+            estado = 'pendiente',
+            mensaje_enviado=f'El responsable {turno.usuario_asignado.nombre} no se presentó a su turno {turno.nombre}.',
+            fecha_escalamiento = timezone.now() 
+        )
 
     # se envia el msj dd whatsapp
 
-    mensaje = (
-        f'*Turno perdido*\n'
-        f'Guardia: {turno.usuario_asignado.nombre} {turno.usuario_asignado.apellido}\n'
-        f'Turno: {turno.nombre_turno}\n'
-        f'Hora inicio: {turno.fecha_inicio.strftime("%d/%m/%Y %H:%M")}\n'
-        f'Por favor tome las medidas necesarias.'
-    )
-    enviado = enviar_whatsapp(jefecito, mensaje, escalamiento)
-    escalamiento.estado = 'enviado' if enviado else 'fallido'
-    escalamiento.save()
+        mensaje = (
+            f'*Turno perdido*\n'
+            f'Guardia: {turno.usuario_asignado.nombre} {turno.usuario_asignado.apellido}\n'
+            f'Turno: {turno.nombre}\n'
+            f'Hora inicio: {turno.fecha_inicio.strftime("%d/%m/%Y %H:%M")}\n'
+            f'Por favor tome las medidas necesarias.'
+        )
+        enviado = enviar_whatsapp(jefecito, mensaje, escalamiento)
+        escalamiento.estado = 'enviado' if enviado else 'fallido'
+        escalamiento.save()
     notificar_relevo(turno)
 
 
