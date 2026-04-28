@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 
 from pathlib import Path
 from datetime import timedelta
+from decouple import config
 import environ
 import os
 
@@ -27,10 +28,13 @@ environ.Env.read_env(os.path.join(BASE_DIR/ '.env'))
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = env('SECRET_KEY')
-DEBUG = env.bool('DEBUG', default=False)
+DEBUG = env.bool('DEBUG', default=False, cast=bool)
 GOOGLE_CREDENTIALS_FILE = BASE_DIR / env('GOOGLE_CREDENTIALS_FILE')
 GOOGLE_REDIRECT_URI = env('GOOGLE_REDIRECT_URI')
 GOOGLE_SCOPES = env.list('GOOGLE_SCOPES') 
+TWILIO_ACCOUNT_SID = config('TWILIO_ACCOUNT_SID')
+TWILIO_AUTH_TOKEN = config('TWILIO_AUTH_TOKEN')
+TWILIO_WHATSAPP_FROM = config('TWILIO_WHATSAPP_FROM')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -167,10 +171,6 @@ STATIC_URL = 'static/'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-
-# TWILIO_ACCOUNT_SID = 'ACxxxxxxxxxxxxxxxx'  # de tu cuenta Twilio
-# TWILIO_AUTH_TOKEN = 'xxxxxxxxxxxxxxxx'
-# TWILIO_WHATSAPP_FROM = 'whatsapp:+14155238886'  # número sandbox de Twilio
 
 #  recordar q tengas el dominio de producción o el deep link de Flutter mobile, 
 #  hay q agregr las URIs adicionales ir a + Agregar URI:
