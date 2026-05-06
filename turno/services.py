@@ -2,7 +2,7 @@ from incidencia.models import Incidencia
 from escalamiento.models import Escalamiento
 from usuario_grupo.models import Usuario_grupo
 from relevo.models import Relevo
-from guardiasServer.notificaciones.services import enviar_whatsapp, enviar_msj_relevo
+from guardiasServer.notificaciones.services import enviar_whatsapp, enviar_msj_usuario
 from django.utils import timezone
 
 def notificar_turno_perdido(turno):
@@ -66,4 +66,4 @@ def notificar_relevo(turno):
         f'Fecha: {turno.fecha_inicio.strftime("%d/%m/%Y %H:%M")}\n'
         f'Podés aceptar o rechazar el turno desde la app.'
     )
-    enviar_msj_relevo(relevo.usuario_destino, mensaje)
+    enviar_msj_usuario(relevo.usuario_destino, mensaje)

@@ -4,6 +4,7 @@ from usuario.models import Usuario
 from relevo.models import Relevo
 from usuario.serializers import UserSerializer
 from calendario.services import crear_evento_google
+from turno.scheduler import programar_notificaciones_turno
     
 class TurnoSerializer(serializers.ModelSerializer):
     # Mostra los datos del usuario asignado
@@ -64,6 +65,7 @@ class TurnoCreateSerializer(serializers.ModelSerializer):
             estado = 'solicitado'
         )
         crear_evento_google(turno)
+        programar_notificaciones_turno(turno)
         return turno
 
             
