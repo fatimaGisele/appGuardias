@@ -82,7 +82,8 @@ class TurnoView(viewsets.ModelViewSet):
             titulo=f'Turno perdido: {turno.nombre}',
             descripcion='El turno no fue tomado por el usuario asignado',
             gravedad='alta',
-            estado='abierta'
+            estado='abierta',
+            fecha_ocurrencia = timezone.now()
         )
 
         notificar_turno_perdido(turno)

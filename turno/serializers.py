@@ -8,7 +8,7 @@ from turno.scheduler import programar_notificaciones_turno
     
 class TurnoSerializer(serializers.ModelSerializer):
     # Mostra los datos del usuario asignado
-    usuario_asignado = UserSerializer(source='usuario_asignado', read_only=True)
+    usuario_asignado = UserSerializer(read_only=True)
     
     class Meta:
         model = Turno
@@ -88,5 +88,8 @@ class TurnoListSerializer(serializers.ModelSerializer):
             'fecha_inicio',
             'fecha_fin',
             'fecha_creacion',
-            'fecha_actualizacion']
+            'fecha_actualizacion',
+            'usuario_nombre',
+            'usuario_email'
+            ]
 

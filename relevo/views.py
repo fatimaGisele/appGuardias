@@ -6,7 +6,7 @@ from rest_framework.response import Response
 from rest_framework import status, viewsets
 from .serializers import RelevoCreateSerializer, RelevoSerializer
 from .models import Relevo
-from guardiasServer.notificaciones.services import enviar_msj_relevo
+from guardiasServer.notificaciones.services import enviar_msj_usuario
 from usuario_grupo.models import Usuario_grupo
 
 # Create your views here.
@@ -50,7 +50,7 @@ class RelevoView(viewsets.ModelViewSet):
         ).select_related('usuario_creador').order_by('prioridad')
 
         for usuario_grupo in jefes:
-            enviar_msj_relevo(usuario_grupo.usuario, mensaje)
+            enviar_msj_usuario(usuario_grupo.usuario, mensaje)
 
     @api_view(['POST'])
     @permission_classes([IsAuthenticated])
@@ -102,7 +102,7 @@ class RelevoView(viewsets.ModelViewSet):
         f'rechazó cubrir el turno *{turno.nombre}*.\n'
         f'Fecha: {turno.fecha_inicio.strftime("%d/%m/%Y %H:%M")}\n'
         f'Motivo: {motivo}'
-    )
+        )
         notificar_jefes_relevo(turno, mensaje)
         return Response({'mensaje': 'Turno rechazado'}, status=status.HTTP_200_OK)
 
