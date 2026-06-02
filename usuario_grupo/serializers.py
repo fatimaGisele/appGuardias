@@ -13,7 +13,9 @@ class UsuarioGrupoSerializer(serializers.ModelSerializer):
             'usuario',
             'grupo_escalamiento',
             'prioridad',
-            'activo'
+            'activo',
+            'usuario_detalle',
+            'grupo_detalle'
         ]
         read_only_fields = ['idusuario_grupo']
 

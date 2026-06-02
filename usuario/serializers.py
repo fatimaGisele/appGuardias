@@ -64,3 +64,17 @@ class ChangePasswordSerializer(serializers.Serializer):
             if data['new_password'] != data['new_password2']:
                 raise serializers.ValidationError( "Las contraseñas no coinciden")
             return data
+        
+class UpdateUserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Usuario
+        fields = ['nombre', 'apellido', 'telefono', 'rol', 'activo']
+
+    # def update(self, instance, validate_data):
+    #   instance.nombre = validate_data.get('nombre', instance.nombre)
+    #   instance.apellido = validate_data.get('apellido', instance.apellido)
+    #   instance.telefono = validate_data.get('telefono', instance.telefono)
+    #   instance.rol = validate_data.get('rol', instance.rol)
+    #   instance.activo = validate_data.get('activo', instance.activo)
+    #   instance.save()
+    #   return instance

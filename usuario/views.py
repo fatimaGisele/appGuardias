@@ -2,7 +2,7 @@ from django.shortcuts import get_object_or_404
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework import status, viewsets
-from .serializers import UserSerializer, CreateUserSerializer, ChangePasswordSerializer
+from .serializers import UserSerializer, CreateUserSerializer, ChangePasswordSerializer, UpdateUserSerializer
 from .models import Usuario
 from turno.models import Turno
 from turno.serializers import TurnoListSerializer
@@ -19,6 +19,8 @@ class UserView(viewsets.ModelViewSet):
             return UserSerializer
         elif self.action == 'create':
             return CreateUserSerializer
+        elif self.action in ['update', 'partial_update']:
+            return UpdateUserSerializer
         return ChangePasswordSerializer
     
     #GET
@@ -74,10 +76,10 @@ class UserView(viewsets.ModelViewSet):
     
     def update(self, request, pk=None):
         usuario = get_object_or_404(Usuario, pk=pk)
-        serializer = self.get_serializer(usuario, data = request.data)
+        serializer = self.get_serializer(usuario, data = request.data, partial = True)
         if serializer.is_valid():
             serializer.save()
-            return Response(serializer.data)
+            return Response(UserSerializer(usuario).data)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
     
