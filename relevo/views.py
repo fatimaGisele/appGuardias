@@ -6,7 +6,7 @@ from rest_framework.response import Response
 from rest_framework import status, viewsets
 from .serializers import RelevoCreateSerializer, RelevoSerializer
 from .models import Relevo
-from guardiasServer.notificaciones.services import enviar_msj_usuario
+from guardiasServer.notificaciones.services import enviar_msj_usuario, enviar_email
 from usuario_grupo.models import Usuario_grupo
 
 # Create your views here.
@@ -17,7 +17,7 @@ class RelevoView(viewsets.ModelViewSet):
     def get_serializer_class(self):
         if self.action =='create':
             return RelevoCreateSerializer
-        return RelevoCreateSerializer
+        return RelevoSerializer
     
     #aceptar un relevo
     def aceptar_relevo(self, request, pk=None):
@@ -39,72 +39,84 @@ class RelevoView(viewsets.ModelViewSet):
         serializer = self.get_serializer(pendientes, many=True)
         return Response(serializer.data)
     
-    def notificar_jefes_relevo(turno, mensaje):
+def notificar_jefes_relevo(turno, mensaje, mensaje_email, asunto):
     #"""Notifica a todos los jefes del grupo de escalamiento del turno"""
-        if not turno.grupo_escalamiento:
-            return
+    if not turno.grupo_escalamiento:
+        return
+    jefes = Usuario_grupo.objects.filter(
+        grupo_escalamiento=turno.grupo_escalamiento,
+        activo=True
+    ).select_related('usuario').order_by('prioridad')
+    for usuario_grupo in jefes:
+        enviar_msj_usuario(usuario_grupo.usuario, mensaje)
+        enviar_email(usuario_grupo.usuario,asunto,mensaje_email)
 
-        jefes = Usuario_grupo.objects.filter(
-            grupo=turno.grupo_escalamiento,
-            activo=True
-        ).select_related('usuario_creador').order_by('prioridad')
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def aceptar_relevo(request, relevo_id):
+    relevo = get_object_or_404(
+        Relevo,
+        idrelevo = relevo_id,
+        usuario_relevo = request.user,
+        estado = 'solicitado'
+    )
 
-        for usuario_grupo in jefes:
-            enviar_msj_usuario(usuario_grupo.usuario, mensaje)
+    turno = relevo.turno_origen
+    turno.usuario_asignado = request.user
+    turno.estado = 'activo'
+    turno.save()
 
-    @api_view(['POST'])
-    @permission_classes([IsAuthenticated])
-    def aceptar_relevo(request, relevo_id):
-        relevo = get_object_or_404(
-            Relevo,
-            idrelevo = relevo_id,
-            usuario_destino = request.user,
-            estado = 'solicitado'
-        )
+    relevo.estado = 'aceptado'
+    relevo.fecha_respuesta = timezone.now()
+    relevo.save()
 
-        turno = relevo.turno_origen
-        turno.usuario_asignado = request.user
-        turno.estado = 'activo'
-        turno.save()
-
-        relevo.estado = 'aceptado'
-        relevo.fecha_respuesta = timezone.now()
-        relevo.save()
-
-        mensaje = (
-        f'*Relevo aceptado*\n'
-        f'El guardia {request.user.nombre} {request.user.apellido} '
-        f'aceptó cubrir el turno *{turno.nombre}*.\n'
-        f'Fecha: {turno.fecha_inicio.strftime("%d/%m/%Y %H:%M")}'
-        )
-        notificar_jefes_relevo(turno, mensaje)
-
-        return Response({'mensaje': 'Turno aceptado'}, status=status.HTTP_200_OK)
+    mensaje = (
+    f'*Relevo aceptado*\n'
+    f'El guardia {request.user.nombre} {request.user.apellido} '
+    f'aceptó cubrir el turno *{turno.nombre}*.\n'
+    f'Fecha: {turno.fecha_inicio.strftime("%d/%m/%Y %H:%M")}'
+    )
+    mensaje_email = (
+    f'Relevo aceptado: {turno.nombre}\n\n'
+    f'El guardia {request.user.nombre} {request.user.apellido} '
+    f'aceptó cubrir el turno {turno.nombre}.\n'
+    f'Fecha: {turno.fecha_inicio.strftime("%d/%m/%Y %H:%M")}'
+    )
+    notificar_jefes_relevo(turno, mensaje, mensaje_email, 'relevo aceptado')
+    return Response({'mensaje': 'Turno aceptado'}, status=status.HTTP_200_OK)
     
-    @api_view(['POST'])
-    @permission_classes([IsAuthenticated])
-    def rechazar_relevo(request, relevo_id):
-        relevo = get_object_or_404(
-            Relevo,
-            idrelevo=relevo_id,
-            usuario_relevo=request.user,
-            estado='solicitado'
-        )
+    
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def rechazar_relevo(request, relevo_id):
+    relevo = get_object_or_404(
+        Relevo,
+        idrelevo=relevo_id,
+        usuario_relevo=request.user,
+        estado='solicitado'
+    )
 
-        relevo.estado = 'rechazado'
-        relevo.fecha_respuesta = timezone.now()
-        relevo.notas = request.data.get('motivo', '') 
-        relevo.save()
-        turno = relevo.turno_origen
-        mensaje = (
-        f'*Relevo rechazado*\n'
-        f'El guardia {request.user.nombre} {request.user.apellido} '
-        f'rechazó cubrir el turno *{turno.nombre}*.\n'
-        f'Fecha: {turno.fecha_inicio.strftime("%d/%m/%Y %H:%M")}\n'
-        f'Motivo: {motivo}'
-        )
-        notificar_jefes_relevo(turno, mensaje)
-        return Response({'mensaje': 'Turno rechazado'}, status=status.HTTP_200_OK)
+    motivo = request.data.get('motivo', 'Sin motivo especificado')
+    relevo.estado = 'rechazado'
+    relevo.fecha_respuesta = timezone.now()
+    relevo.notas = request.data.get('motivo', '') 
+    relevo.save()
+    turno = relevo.turno_origen
+    mensaje = (
+    f'*Relevo rechazado*\n'
+    f'El guardia {request.user.nombre} {request.user.apellido} '
+    f'rechazó cubrir el turno *{turno.nombre}*.\n'
+    f'Fecha: {turno.fecha_inicio.strftime("%d/%m/%Y %H:%M")}\n'
+    f'Motivo: {motivo}'
+    )
+    mensaje_email = (
+    f'Relevo rechazado: {turno.nombre}\n\n'
+    f'El guardia {request.user.nombre} {request.user.apellido} '
+    f'rechazó cubrir el turno {turno.nombre}.\n'
+    f'Motivo: {motivo}'
+    )
+    notificar_jefes_relevo(turno, mensaje, mensaje_email, 'relevo rechazado')
+    return Response({'mensaje': 'Turno rechazado'}, status=status.HTTP_200_OK)
 
 
 

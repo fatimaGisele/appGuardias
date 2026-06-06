@@ -53,7 +53,7 @@ def iniciar_scheduler():
         verificar_turnos_perdidos,
         trigger='interval',
         minutes=5,          
-        id='verificar_turnos',
+        id='verificar_turnos_perdidos',
         replace_existing=True
     )
 
@@ -71,7 +71,7 @@ def programar_notificaciones_turno(turno):
             trigger = 'date',
             run_date = media_hora_antes,
             args = [turno.idturno],
-            id = f'RECORDATORIO DE TURNO {turno.idturno}',
+            id = f'RECORDATORIO DE TURNO{turno.idturno}',
             replace_existing = True
         )
 
@@ -82,7 +82,7 @@ def programar_notificaciones_turno(turno):
            trigger = 'date',
            run_date = turno.fecha_inicio,
            args = [turno.idturno],
-           id= f'inicio de turno {turno.idturno} ',
+           id= f'inicio de turno{turno.idturno}',
            replace_existing = True
         )
         

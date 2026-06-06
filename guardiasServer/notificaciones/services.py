@@ -2,6 +2,8 @@ from twilio.rest import Client
 from django.conf import settings
 from historial_notificacion.models import Historial_notificacion
 import logging
+from django.core.mail import send_mail
+from django.conf import settings
 
 logger = logging.getLogger(__name__)
 
@@ -47,4 +49,17 @@ def enviar_msj_usuario(usuario, mensaje):
         logger.error(f"el mensaje fallo {e}")
         return False 
 
+def enviar_email(usuario, asunto, mensaje):
+    try:
+        send_mail(
+            subject= asunto,
+            message= mensaje,
+            from_email= settings.DEFAULT_FROM_EMAIL,
+            recipient_list= [usuario.email],
+            fail_silently= False,
+        )
+        return True
+    except Exception as e:
+        logger.error(f'error al enviar mail {e}')
+        return False
         

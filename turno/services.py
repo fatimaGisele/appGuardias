@@ -2,8 +2,10 @@ from incidencia.models import Incidencia
 from escalamiento.models import Escalamiento
 from usuario_grupo.models import Usuario_grupo
 from relevo.models import Relevo
-from guardiasServer.notificaciones.services import enviar_whatsapp, enviar_msj_usuario
+from guardiasServer.notificaciones.services import enviar_whatsapp, enviar_msj_usuario, enviar_email
 from django.utils import timezone
+
+
 
 def notificar_turno_perdido(turno):
     #se crea la incidencia
@@ -46,7 +48,17 @@ def notificar_turno_perdido(turno):
             f'Hora inicio: {turno.fecha_inicio.strftime("%d/%m/%Y %H:%M")}\n'
             f'Por favor tome las medidas necesarias.'
         )
+
+    # se envia email
+        mensaje_email = (
+            f'Turno perdido: {turno.nombre}\n\n'
+            f'El guardia {turno.usuario_asignado.nombre} {turno.usuario_asignado.apellido} '
+            f'no se presentó al turno {turno.nombre}.\n'
+            f'Hora de inicio: {turno.fecha_inicio.strftime("%d/%m/%Y %H:%M")}'
+        )
+
         enviado = enviar_whatsapp(jefecito, mensaje, escalamiento)
+        enviar_email(jefecito, 'turno perdido', mensaje_email)
         escalamiento.estado = 'enviado' if enviado else 'fallido'
         escalamiento.save()
     notificar_relevo(turno)
@@ -66,4 +78,11 @@ def notificar_relevo(turno):
         f'Fecha: {turno.fecha_inicio.strftime("%d/%m/%Y %H:%M")}\n'
         f'Podés aceptar o rechazar el turno desde la app.'
     )
+    mensaje_email = (
+            f'Turno perdido: {turno.nombre}\n\n'
+            f'El turno {turno.nombre} '
+            f'Hora de inicio: {turno.fecha_inicio.strftime("%d/%m/%Y %H:%M")}'
+        )
+    enviar_email(relevo.usuario_destino, 'turno perdido', mensaje_email)
     enviar_msj_usuario(relevo.usuario_destino, mensaje)
+
