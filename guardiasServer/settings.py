@@ -67,10 +67,12 @@ INSTALLED_APPS = [
     'usuario_grupo',
     'grupo_escalamiento',
     'historial_notificacion',
-    'template_notificacion'
+    'template_notificacion',
+    'corsheaders'
 ]
 
 MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware', 
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -79,6 +81,13 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
+
+CORS_ALLOWED_ORIGINS = [
+    'http://localhost:53000',  # puerto Flutter web 
+    'http://127.0.0.1:1789',
+]
+
+CORS_ALLOW_ALL_ORIGINS = True  #solo en desarrollo...acordarse de borrar
 
 ROOT_URLCONF = 'guardiasServer.urls'
 

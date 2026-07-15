@@ -17,7 +17,7 @@ class TurnoSerializer(serializers.ModelSerializer):
 class TurnoCreateSerializer(serializers.ModelSerializer):
     usuario_relevo_id = serializers.PrimaryKeyRelatedField(
         queryset=Usuario.objects.filter(
-            rol__nombre__in=['relevo'],  
+            rol__nombre__in=['guardia','relevo'],  
             activo=True
         ),
         write_only=True
@@ -41,9 +41,9 @@ class TurnoCreateSerializer(serializers.ModelSerializer):
             'El usuario encargado de la guardia y el relevo no pueden ser el mismo usuario.'
         )
         rol_nombre = data['usuario_asignado'].rol.nombre
-        if rol_nombre not in ['lider', 'encargado']:
+        if rol_nombre not in ['guardia', 'relevo']:
             raise serializers.ValidationError(
-            'El usuario asignado debe tener el rol de lider o encargado.'
+            'El usuario asignado debe tener el rol de guardia o relevo'
         )
         return data
         
