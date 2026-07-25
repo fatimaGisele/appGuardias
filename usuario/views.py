@@ -1,5 +1,6 @@
 from django.shortcuts import get_object_or_404
-from rest_framework.decorators import action
+from rest_framework.decorators import action, api_view, permission_classes
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework import status, viewsets
 from .serializers import UserSerializer, CreateUserSerializer, ChangePasswordSerializer, UpdateUserSerializer
@@ -34,44 +35,6 @@ class UserView(viewsets.ModelViewSet):
         usuario = get_object_or_404(Usuario, pk=pk)
         serializer = self.get_serializer(usuario)
         return Response(serializer.data)
-
-    
-    # def create(self, request):
-    #     serializer = self.get_serializer(data=request.data)
-    #     if serializer.is_valid():
-    #         serializer.save()
-    #         return Response(serializer.data, status=status.HTTP_201_CREATED)
-    #     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    
-    # @action(detail=False, methods=['post'], url_path='login')
-    # def login(self, request):
-    #     email = request.data.get('email')
-    #     password = request.data.get('password')
-    #     if not email or not password:
-    #         return Response({'error':'el email o la contraseña son incorrectos'}, status=status.HTTP_400_BAD_REQUEST)
-    #     try:
-    #         usuario = Usuario.objects.get(email = email)
-    #     except Usuario.DoesNotExist:
-    #         return Response({'error':'el email NO EXISTE'}, status=status.HTTP_401_UNAUTHORIZED)
-        
-    #     if bcrypt.checkpw(password.encode('utf-8'), usuario.password.encode('UTF-8')):
-    #         refreshToken = RefreshToken.for_user(usuario)
-    #         access = refreshToken.access_token
-    #         usuarioData = ({
-    #             "refreshToken" : str(refreshToken),
-    #             "access": str(access),
-    #             "usuario": {
-    #             "idusuario": usuario.idusuario,
-    #             "nombre": usuario.nombre,
-    #             "apellido": usuario.apellido,
-    #             "email": usuario.email,
-    #             "telefono": usuario.telefono,
-    #             "rol": usuario.rol}
-    #         })
-    #         return Response(usuarioData, status=status.HTTP_200_OK)
-    #     else:
-    #         return Response({'error':'el email o la password NO EXISTE'}, status=status.HTTP_401_UNAUTHORIZED)
-
             
     
     def update(self, request, pk=None):
@@ -96,6 +59,28 @@ class UserView(viewsets.ModelViewSet):
         turnos = Turno.objects.filter(usuario_idusuario=usuario)
         serializer = TurnoListSerializer(turnos, many=True)
         return Response(serializer.data)
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def estadisticas_equipo(request):
+    usuario = Usuario.objects.filter(action = True)
+    resultado = []
+    for u in usuario:
+        turnos = Turno.objects.filter(usuario_asignado=u)
+        resultado.append({
+            'idusuario':u.idusuario,
+            'nombre': u.nombre,
+            'apellido': u.apellido,
+            'rol': u.rol.nombre,
+            'total': turnos.count(),
+            'cubiertas': turnos.filter(estado='completado').count(),
+            'activas': turnos.filter(estado='activo').count(),
+            'perdidas': turnos.filter(estado='perdido').count(),
+            'programadas': turnos.filter(estado='programado').count(),
+        })
+    return Response(resultado)
+
     
 
 
