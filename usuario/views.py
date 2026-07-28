@@ -1,5 +1,5 @@
 from django.shortcuts import get_object_or_404
-from rest_framework.decorators import action, api_view, permission_classes
+from rest_framework.decorators import action, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework import status, viewsets
@@ -61,25 +61,24 @@ class UserView(viewsets.ModelViewSet):
         return Response(serializer.data)
 
 
-@api_view(['GET'])
-@permission_classes([IsAuthenticated])
-def estadisticas_equipo(request):
-    usuario = Usuario.objects.filter(action = True)
-    resultado = []
-    for u in usuario:
-        turnos = Turno.objects.filter(usuario_asignado=u)
-        resultado.append({
-            'idusuario':u.idusuario,
-            'nombre': u.nombre,
-            'apellido': u.apellido,
-            'rol': u.rol.nombre,
-            'total': turnos.count(),
-            'cubiertas': turnos.filter(estado='completado').count(),
-            'activas': turnos.filter(estado='activo').count(),
-            'perdidas': turnos.filter(estado='perdido').count(),
-            'programadas': turnos.filter(estado='programado').count(),
-        })
-    return Response(resultado)
+    @action(detail=False, methods=['get'], url_path='estadisticas', permission_classes=[IsAuthenticated])
+    def estadisticas_equipo(self, request):
+        usuario = Usuario.objects.filter(activo = True)
+        resultado = []
+        for u in usuario:
+            turnos = Turno.objects.filter(usuario_asignado=u)
+            resultado.append({
+                'idusuario':u.idusuario,
+                'nombre': u.nombre,
+                'apellido': u.apellido,
+                'rol': u.rol.nombre,
+                'total': turnos.count(),
+                'cubiertas': turnos.filter(estado='completado').count(),
+                'activas': turnos.filter(estado='activo').count(),
+                'perdidas': turnos.filter(estado='perdido').count(),
+                'programadas': turnos.filter(estado='programado').count(),
+            })
+        return Response(resultado)
 
     
 
