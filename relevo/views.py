@@ -8,6 +8,7 @@ from .serializers import RelevoCreateSerializer, RelevoSerializer
 from .models import Relevo
 from guardiasServer.notificaciones.services import enviar_msj_usuario, enviar_email
 from usuario_grupo.models import Usuario_grupo
+from relevo.models import Relevo
 
 # Create your views here.
 class RelevoView(viewsets.ModelViewSet):
@@ -119,7 +120,23 @@ def rechazar_relevo(request, relevo_id):
     return Response({'mensaje': 'Turno rechazado'}, status=status.HTTP_200_OK)
 
 
-
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def relevos_pendientes(request):
+    relevos = Relevo.objects.filter(
+        usuario_relevo = request.user,
+        estado = 'solicitado'
+    ).select_related('turno_origen')
+    data = []
+    for r in relevos:
+        data.append({
+            'idrelevo': r.idrelevo,
+            'turno_nombre': r.turno_origen.nombre,
+            'fecha_inicio': r.turno_origen.fecha_inicio,
+            'fecha_fin': r.turno_origen.fecha_fin,
+            'estado': r.estado,
+        })
+    return Response(data)
 
 
     

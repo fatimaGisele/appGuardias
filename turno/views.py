@@ -93,7 +93,14 @@ class TurnoView(viewsets.ModelViewSet):
             'turno': TurnoSerializer(turno).data,
             'incidencia_id': incidencia.idincidencia
         })
-    
+
+    @action(detail=False, methods=['get'], url_path='mis-turnos')
+    def mis_turnos(self, request):
+        turnos = Turno.objects.filter(
+            usuario_asignado = request.user
+        ).order_by('fecha_inicio')
+        serializer = TurnoListSerializer(turnos, many=True)
+        return Response(serializer.data)
     
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
