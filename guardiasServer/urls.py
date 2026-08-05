@@ -19,4 +19,5 @@ urlpatterns = [
     path('usuario_grupo/', include('usuario_grupo.urls')),
     path('token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),  
+    path('vacaciones/', include('vacacion.urls')),
 ]
