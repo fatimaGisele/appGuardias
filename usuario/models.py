@@ -36,7 +36,7 @@ class Usuario(AbstractUser):
     activo = models.BooleanField(default=True)
     fecha_creacion = models.DateTimeField(auto_now_add=True)
     fecha_actualizacion = models.DateTimeField(auto_now=True)
-    
+    fecha_ingreso = models.DateField(blank=True, null=True)
     objects = UsuarioManager()
 
     USERNAME_FIELD = 'email'

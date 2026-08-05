@@ -8,7 +8,7 @@ import bcrypt
 class UserSerializer(serializers.ModelSerializer):
       class Meta:
         model = Usuario
-        fields = ['idusuario','nombre','apellido','email','telefono','rol','activo',
+        fields = ['idusuario','nombre','apellido','email','telefono','rol','activo','fecha_ingreso',
                       'fecha_creacion','fecha_actualizacion']
         
 #crear y validar
@@ -22,7 +22,7 @@ class CreateUserSerializer(serializers.ModelSerializer):
         class Meta:
             model = Usuario
             fields = ['idusuario','nombre','apellido','email','telefono','rol_id','activo',
-                        'fecha_creacion','fecha_actualizacion','password','password2']
+                        'fecha_ingreso','fecha_creacion','fecha_actualizacion','password','password2']
             extra_kwargs = {
                'password' : {'write_only': True}
             }
@@ -68,7 +68,7 @@ class ChangePasswordSerializer(serializers.Serializer):
 class UpdateUserSerializer(serializers.ModelSerializer):
     class Meta:
         model = Usuario
-        fields = ['nombre', 'apellido', 'telefono', 'rol', 'activo']
+        fields = ['nombre', 'apellido', 'telefono', 'rol', 'activo','fecha_ingreso']
 
     # def update(self, instance, validate_data):
     #   instance.nombre = validate_data.get('nombre', instance.nombre)

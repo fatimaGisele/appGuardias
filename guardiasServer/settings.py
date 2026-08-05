@@ -68,6 +68,7 @@ INSTALLED_APPS = [
     'grupo_escalamiento',
     'historial_notificacion',
     'template_notificacion',
+    'vacacion',
     'corsheaders'
 ]
 
