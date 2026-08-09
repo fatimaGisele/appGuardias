@@ -91,3 +91,21 @@ class VacacionView(viewsets.ModelViewSet):
             estado='pendiente'
         ).select_related('usuario').order_by('fecha_inicio')
         return Response(VacacionSerializer(vacaciones, many=True).data)
+
+    @action(detail=False, methods=['get'], url_path='calendario')
+    def para_calendario(self, request):
+        vacaciones = Vacacion.objects.filter(
+            estado='aprobada'
+        ).select_related('usuario')
+        data = []
+        for v in vacaciones:
+            data.append({
+                'idvacacion': v.idvacacion,
+                'tipo': 'vacacion',
+                'usuario_nombre': v.usuario.nombre,
+                'usuario_apellido': v.usuario.apellido,
+                'fecha_inicio': v.fecha_inicio.isoformat(),
+                'fecha_fin': v.fecha_fin.isoformat(),
+                'dias_habiles': v.dias_habiles
+            })
+        return Response(data)
