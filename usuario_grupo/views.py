@@ -1,5 +1,5 @@
 from rest_framework import viewsets, status
-from rest_framework.decorators import action
+from rest_framework.decorators import action,api_view,permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from .models import Usuario_grupo
@@ -36,3 +36,32 @@ class UsuarioGrupoView(viewsets.ModelViewSet):
         usuario_grupo.activo = False
         usuario_grupo.save()
         return Response({'mensaje': 'Usuario desactivado en el grupo'})
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def mi_equipo(request):
+    mi_grupo = Usuario_grupo.objects.filter(
+        usuario = request.user,
+        activo = True
+    ).select_related('grupo_escalamiento')
+    resultado = []
+    for ug in mi_grupo:
+        grupo = ug.grupo_escalamiento
+        miembros_grupo = Usuario_grupo.objects.filter(
+            grupo_escalamiento = grupo,
+            activo = True
+        ).select_related('usuario', 'usuario__rol')
+        resultado.append({
+            'idgrupo': grupo.idgrupo_escalamiento,
+            'nombre': grupo.nombre,
+            'descripcion': grupo.descripcion,
+            'miembros': [{
+                'idusuario': m.usuario.idusuario,
+                'nombre': m.usuario.nombre,
+                'apellido': m.usuario.apellido,
+                'email': m.usuario.email,
+                'rol': m.usuario.rol.nombre,
+                'prioridad': m.prioridad,
+            }for m in miembros_grupo]
+        })
+        return Response(resultado)
