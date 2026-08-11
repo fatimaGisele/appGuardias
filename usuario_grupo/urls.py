@@ -6,6 +6,6 @@ router = DefaultRouter()
 router.register(r'', UsuarioGrupoView, basename='usuario_grupo')
 
 urlpatterns = [
-    path('mis-equipos/', name=mi_equipo),
+    path('mis_equipos/', name=mi_equipo),
     path('', include(router.urls)),
 ]
