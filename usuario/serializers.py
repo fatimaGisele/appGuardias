@@ -22,7 +22,7 @@ class CreateUserSerializer(serializers.ModelSerializer):
         class Meta:
             model = Usuario
             fields = ['idusuario','nombre','apellido','email','telefono','rol_id','activo',
-                        'fecha_ingreso','fecha_creacion','fecha_actualizacion','password','password2']
+                        'fecha_ingreso','fecha_creacion','fecha_actualizacion', 'hora_entrada','hora_salida', 'observaciones_jornada','password','password2']
             extra_kwargs = {
                'password' : {'write_only': True}
             }
@@ -68,13 +68,6 @@ class ChangePasswordSerializer(serializers.Serializer):
 class UpdateUserSerializer(serializers.ModelSerializer):
     class Meta:
         model = Usuario
-        fields = ['nombre', 'apellido', 'telefono', 'rol', 'activo','fecha_ingreso']
+        fields = ['nombre', 'apellido', 'telefono', 'rol', 'activo','fecha_ingreso', 'hora_entrada','hora_salida', 'observaciones_jornada']
 
-    # def update(self, instance, validate_data):
-    #   instance.nombre = validate_data.get('nombre', instance.nombre)
-    #   instance.apellido = validate_data.get('apellido', instance.apellido)
-    #   instance.telefono = validate_data.get('telefono', instance.telefono)
-    #   instance.rol = validate_data.get('rol', instance.rol)
-    #   instance.activo = validate_data.get('activo', instance.activo)
-    #   instance.save()
-    #   return instance
+    

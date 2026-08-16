@@ -37,6 +37,9 @@ class Usuario(AbstractUser):
     fecha_creacion = models.DateTimeField(auto_now_add=True)
     fecha_actualizacion = models.DateTimeField(auto_now=True)
     fecha_ingreso = models.DateField(blank=True, null=True)
+    hora_entrada = models.TimeField(blank=True, null=True)
+    hora_salida = models.TimeField(blank=True, null=True)
+    observaciones_jornada = models.TextField(blank=True, null=True) 
     objects = UsuarioManager()
 
     USERNAME_FIELD = 'email'
