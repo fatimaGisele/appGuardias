@@ -33,7 +33,7 @@ class UserView(viewsets.ModelViewSet):
     #filtra x id
     def retrieve(self, request, pk=None):
         usuario = get_object_or_404(Usuario, pk=pk)
-        serializer = self.get_serializer(usuario)
+        serializer = UserSerializer(usuario) #self.get_serializer(usuario)
         return Response(serializer.data)
             
     

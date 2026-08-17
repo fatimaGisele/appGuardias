@@ -8,8 +8,9 @@ import bcrypt
 class UserSerializer(serializers.ModelSerializer):
       class Meta:
         model = Usuario
-        fields = ['idusuario','nombre','apellido','email','telefono','rol','activo','fecha_ingreso',
-                      'fecha_creacion','fecha_actualizacion']
+        fields = ['idusuario','nombre','apellido','email','telefono','rol',
+                    'activo','fecha_ingreso',
+                    'fecha_creacion','fecha_actualizacion']
         
 #crear y validar
 class CreateUserSerializer(serializers.ModelSerializer):
