@@ -41,6 +41,7 @@ class Usuario(AbstractUser):
     hora_salida = models.TimeField(blank=True, null=True)
     observaciones_jornada = models.TextField(blank=True, null=True) 
     objects = UsuarioManager()
+    fcm_token = models.CharField(max_length=255, blank=True, null=True)
 
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = ['nombre', 'apellido']

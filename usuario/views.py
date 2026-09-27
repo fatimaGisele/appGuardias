@@ -51,7 +51,6 @@ class UserView(viewsets.ModelViewSet):
         usuario.activo = False
         usuario.save()
         return Response(status=status.HTTP_204_NO_CONTENT)
-    
      
     
     def turnos_usuario(self, request, pk=None):
@@ -60,6 +59,14 @@ class UserView(viewsets.ModelViewSet):
         serializer = TurnoListSerializer(turnos, many=True)
         return Response(serializer.data)
 
+    @action(detail=False, methods=['post'], url_path='fcm-token')
+    def guardar_fcm_token(self, request):
+        token =  request.data.get('token')
+        if not token:
+            return Response({'error':'Token requerido'}, status=status.HTTP_400_BAD_REQUEST)     
+        request.user.fcm_token = token
+        request.user.save()
+        return Response({'mesagge':'Token guardado'})
 
     @action(detail=False, methods=['get'], url_path='estadisticas', permission_classes=[IsAuthenticated])
     def estadisticas_equipo(self, request):
