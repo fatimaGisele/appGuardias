@@ -34,6 +34,7 @@ class Turno(models.Model):
         Calendario,
         on_delete=models.CASCADE
     )
+    google_event_id = models.CharField(max_length=255, blank=True, null=True)
     nombre = models.CharField(max_length=45)
     descripcion = models.TextField(blank=True, null=True)
     estado = models.CharField(

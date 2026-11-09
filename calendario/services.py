@@ -5,6 +5,19 @@ from googleapiclient.discovery import build
 from google_auth_oauthlib.flow import Flow
 from django.conf import settings
 from .models import Calendario
+import logging
+from googleapiclient.errors import HttpError
+
+logging = logging.getLogger(__name__)
+TZ = 'America/Argentina/Buenos_Aires'
+CAMPO_EVENT_ID = 'google_event_id'
+
+def _servicio(turno):
+    calendario = turno.calendario
+    if not calendario or not calendario.config_api:
+        return None, None
+    service = build('calendar', 'v3', credentials=get_credentials(calendario))
+    return service, (calendario.calendarioId or 'primary')
 
 def get_flow():
     return Flow.from_client_secrets_file(
@@ -51,16 +64,18 @@ def crear_evento_google(turno):
                 'dateTime': turno.fecha_fin.isoformat(),
                 'timeZone': 'America/Argentina/Buenos_Aires',
             },
-            'attendees': [
-                {'email': turno.usuario_asignado.email},
-            ],
             'reminders': {
                 'useDefault': False,
                 'overrides': [
                     {'method': 'popup', 'minutes': 30},  # recordatorio 30 min antes
                 ],
             },
+            'guestsCanModify': False,
+            'guestsCanInviteOthers': False
         }
+        usuario = turno.usuario_asignado
+        if usuario and usuario.email:
+            evento['attendees'] = [{'email': usuario.email}]
 
         evento_creado = service.events().insert(
             calendarId='primary',
@@ -69,7 +84,66 @@ def crear_evento_google(turno):
         ).execute()
         return evento_creado.get('id')
     except Exception as e:
-        import logging
-        logging.getLogger(__name__).error(f"Error creando evento en Google Calendar: {e}")
+        logging.error(f"Error creando evento en Google Calendar: {e}")
         return None
+
+def actualizar_evento_google(turno):
+    if not turno.google_event_id:
+        return crear_evento_google(turno)
+    try:
+        calendario = turno.calendario
+        if not calendario or not calendario.config_api:
+            return None
+        creds =get_credentials(calendario) 
+        service = build('calendar', 'v3', credentials=creds)
+        cambios = {
+            'summary': f'Turno: {turno.nombre}',
+            'description': turno.descripcion or '',
+            'start': {
+                'dateTime': turno.fecha_inicio.isoformat(),
+                'timeZone': 'America/Argentina/Buenos_Aires',
+            },
+            'end': {
+                'dateTime': turno.fecha_fin.isoformat(),
+                'timeZone': 'America/Argentina/Buenos_Aires',
+            },
+        }
+        usuario = turno.usuario_asignado
+        if usuario and usuario.email:
+            cambios['attendees'] = [{'email': usuario.email}]
+
+        service.events().patch(
+            calendarId = 'primary',
+            eventId = turno.google_event_id,
+            body = cambios,
+            sendUpdates = 'all'
+        ).execute()
+        return turno.google_event_id
+    except Exception as e:
+        logging.error(f"Error actualizando evento en Google Calendar: {e}")
+        return None 
         
+        
+def cancelar_evento_google(turno):
+    if not turno.google_event_id:
+        return True
+    try:
+        calendario = turno.calendario
+        if not calendario or not calendario.config_api:
+            return False
+        creds = get_credentials(calendario)
+        service = build('calendar', 'v3', credentials=creds)
+        service.events().delete(
+            calendarId ='primary',
+            eventId = turno.google_event_id,
+            sendUpdates='all'
+        ).execute()
+        return True
+    except HttpError as e:
+        if e.resp.status in (404, 410):  
+            return True
+        logging.error(f"Error cancelando evento en Google Calendar: {e}")
+        return False
+    except Exception as e:
+        logging.error(f"Error cancelando evento en Google Calendar: {e}")
+        return False
