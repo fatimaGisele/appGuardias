@@ -1,11 +1,12 @@
 import json
 from django.shortcuts import redirect
-from rest_framework.decorators import api_view, permission_classes, action
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.decorators import api_view, authentication_classes, permission_classes, action
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework import status, viewsets
 from .services import get_flow
 from django.conf import settings
+from guardiasServer.permissions import EsJefe
 from .models import Calendario
 from .serializers import CalendarioSerializer, CalendarioCreateSerializer
 
@@ -14,6 +15,11 @@ class CalendarioView(viewsets.ModelViewSet):
     queryset = Calendario.objects.all()
     serializer_class = CalendarioSerializer
 
+    def get_permissions(self):
+        if self.action in ('list','retrieve', 'estado_conexion'):
+            return [IsAuthenticated()]
+        return [EsJefe()]
+    
     def get_serializer_class(self):
         if self.action == 'create':
             return CalendarioCreateSerializer
@@ -66,6 +72,8 @@ class CalendarioView(viewsets.ModelViewSet):
 
 
 @api_view(['GET'])
+@authentication_classes([])
+@permission_classes([AllowAny])
 def google_oauth_callback(request):
     code = request.GET.get('code')
     state = request.GET.get('state')

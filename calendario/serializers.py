@@ -11,9 +11,13 @@ class CalendarioSerializer(serializers.ModelSerializer):
             'tipo_calendario',
             'activo',
             'config_api',
+            'conectado',
             'fecha_creacion'
             ]
         read_only_fields = ['idcalendario', 'fecha_creacion']
+    conectado = serializers.SerializerMethodField()
+    def get_conectado(self, obj):
+        return bool(obj.config_api)
 
 class CalendarioCreateSerializer(serializers.ModelSerializer):
     class Meta:

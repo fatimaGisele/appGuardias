@@ -40,8 +40,10 @@ DEFAULT_FROM_EMAIL = env('EMAIL_HOST_USER')
 # SECURITY WARNING: don't run with debug turned on in production!
 # DEBUG = True
 
-ALLOWED_HOSTS = [] #'192.168.1.244' para cuando se haga el front
-
+#ALLOWED_HOSTS = [] #'192.168.1.244' para cuando se haga el front
+ALLOWED_HOSTS = env.list('ALLOWED_HOSTS', default=['localhost', '127.0.0.1'])
+# Permite o no el registro publico (/auth/register/). En produccion conviene False.
+PUBLIC_REGISTRATION = env.bool('PUBLIC_REGISTRATION', default=True)
 
 # Application definition
 
@@ -83,12 +85,20 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-CORS_ALLOWED_ORIGINS = [
-    'http://localhost:53000',  # puerto Flutter web 
-    'http://127.0.0.1:1789',
-]
-
+# CORS_ALLOWED_ORIGINS = [
+#     'http://localhost:53000',  # puerto Flutter web 
+#     'http://127.0.0.1:1789',
+# ]
 CORS_ALLOW_ALL_ORIGINS = True  #solo en desarrollo...acordarse de borrar
+# Origenes permitidos (Flutter web). Ej: CORS_ALLOWED_ORIGINS=https://app.midominio.com
+CORS_ALLOWED_ORIGINS = env.list('CORS_ALLOWED_ORIGINS', default=[])
+if DEBUG:
+    # En desarrollo Flutter web usa un puerto distinto en cada ejecucion
+    CORS_ALLOWED_ORIGIN_REGEXES = [
+        r'^http://localhost:\d+$',
+        r'^http://127\.0\.0\.1:\d+$',
+    ]
+
 
 ROOT_URLCONF = 'guardiasServer.urls'
 
@@ -116,11 +126,11 @@ WSGI_APPLICATION = 'guardiasServer.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME':  'guardias_db',
-        'USER' : 'root',
-        'PASSWORD': 'mila',
-        'HOST': 'localhost',
-        'PORT': '3303'
+        'NAME': env('DB_NAME', default='guardias_db'),
+        'USER': env('DB_USER', default='root'),
+        'PASSWORD': env('DB_PASSWORD'),
+        'HOST': env('DB_HOST', default='localhost'),
+        'PORT': env('DB_PORT', default='3306')
     }
 }
 
@@ -147,7 +157,15 @@ AUTH_PASSWORD_VALIDATORS = [
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES' : [
         'rest_framework_simplejwt.authentication.JWTAuthentication'
-    ]
+    ],
+    # Todo requiere sesion salvo lo que se marque explicitamente como AllowAny
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.IsAuthenticated',
+    ],
+    'DEFAULT_THROTTLE_RATES': {
+        'login': '10/min',
+        'register': '5/min',
+    },
 }
 SIMPLE_JWT = {
     'USER_ID_FIELD': 'idusuario',  
