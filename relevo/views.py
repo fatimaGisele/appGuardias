@@ -9,11 +9,13 @@ from .models import Relevo
 from guardiasServer.notificaciones.services import enviar_msj_usuario, enviar_email
 from usuario_grupo.models import Usuario_grupo
 from relevo.models import Relevo
+from guardiasServer.permissions import SoloJefeEscribe
 
 # Create your views here.
 class RelevoView(viewsets.ModelViewSet):
     queryset = Relevo.objects.all()
     serializer_class = RelevoSerializer
+    permission_classes = [SoloJefeEscribe]
 
     def get_serializer_class(self):
         if self.action =='create':

@@ -5,10 +5,12 @@ from rest_framework.decorators import api_view
 from rest_framework import status, viewsets
 from .serializers import IncidenciaCreateSerializer, IncidenciaSerializer
 from .models import Incidencia
+from guardiasServer.permissions import SoloJefeEscribe
 
 class IncidenciaView(viewsets.ModelViewSet):
     queryset = Incidencia.objects.all()
     serializer_class = IncidenciaSerializer
+    permission_classes = [SoloJefeEscribe]
 
     def get_serializer_class(self):
         if self.action =='create':

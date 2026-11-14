@@ -4,18 +4,26 @@ from django.utils import timezone
 from turno.models import Turno
 from turno.services import notificar_turno_perdido
 from guardiasServer.notificaciones.services import enviar_msj_usuario
+from datetime import timedelta
+import logging
+
+logger = logging.getLogger(__name__)
+PLAZO_TURNO_PERDIDO = timedelta(minutes=30)
 
 def verificar_turnos_perdidos():
-    ahora = timezone.now()
+    limite = timezone.now() - PLAZO_TURNO_PERDIDO
 
     turnos_perdidos = Turno.objects.filter(
         estado = 'programado',
-        fecha_inicio__lte = ahora,
+        fecha_inicio__lte = limite,
     )
     for turno in turnos_perdidos:
-        turno.estado = 'perdido'
-        turno.save()
-        notificar_turno_perdido(turno)
+        try:
+            turno.estado = 'perdido'
+            turno.save()
+            notificar_turno_perdido(turno)
+        except Exception as e:
+            logger.exception(e)
 
 def notificar_inicio_turno(turno_id):
     try:

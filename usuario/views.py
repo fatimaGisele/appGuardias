@@ -7,6 +7,7 @@ from .serializers import UserSerializer, CreateUserSerializer, ChangePasswordSer
 from .models import Usuario
 from turno.models import Turno
 from turno.serializers import TurnoListSerializer
+from guardiasServer.permissions import EsJefe, es_jefe, es_lider
 import bcrypt
 from rest_framework_simplejwt.tokens import RefreshToken
 
@@ -14,6 +15,16 @@ from rest_framework_simplejwt.tokens import RefreshToken
 class UserView(viewsets.ModelViewSet):
     queryset = Usuario.objects.all()
     serializer_class = UserSerializer 
+
+    def get_permissions(self):
+        # lectura, token FCM y estadisticas: cualquier usuario autenticado
+        if self.action in ('list', 'retrieve', 'guardar_fcm_token', 'estadisticas_equipo'):
+            return [IsAuthenticated()]
+        # editar: jefe, o el propio usuario (con campos limitados, ver update)
+        if self.action in ('update', 'partial_update'):
+            return [IsAuthenticated()]
+        # crear y desactivar usuarios: solo lider o encargado
+        return [EsJefe()]
     
     def get_serializer_class(self):
         if self.action == 'list':
@@ -36,14 +47,33 @@ class UserView(viewsets.ModelViewSet):
         serializer = UserSerializer(usuario) #self.get_serializer(usuario)
         return Response(serializer.data)
             
+    def create(self, request):
+        serializer = CreateUserSerializer(data=request.data)
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        # solo un lider puede crear a otro lider
+        if serializer.validated_data['rol_id'].nombre.lower() == 'lider' and not es_lider(request.user):
+            return Response({'error': 'Solo un lider puede crear otro lider'},
+                            status=status.HTTP_403_FORBIDDEN)
+        usuario = serializer.save()
+        return Response(UserSerializer(usuario).data, status=status.HTTP_201_CREATED)
     
-    def update(self, request, pk=None):
+    def update(self, request, pk=None, **kwargs):
         usuario = get_object_or_404(Usuario, pk=pk)
-        serializer = self.get_serializer(usuario, data = request.data, partial = True)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(UserSerializer(usuario).data)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        jefe = es_jefe(request.user)
+        if not jefe and usuario.pk != request.user.pk:
+            return Response({'error':' No tienes los permisos necesarios'}, status=status.HTTP_403_FORBIDDEN)
+        if usuario.rol.nombre.lower() == 'lider' and not es_lider(request.user) == usuario.pk != request.user.pk:
+            return Response({'error':' No tienes los permisos necesarios'}, status=status.HTTP_403_FORBIDDEN)
+        data = request.data
+        if not jefe:
+            permitidos = ('nombre', 'apellido', 'telefono')
+            data = {k: v for k, v in request.data.items() if k in permitidos}
+        serializer = self.get_serializer(usuario, data=data, partial=True)
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        serializer.save()
+        return Response(UserSerializer(usuario).data)
     
     
     def destroy(self, request, pk=None):

@@ -8,14 +8,14 @@ from .serializers import TurnoSerializer, TurnoCreateSerializer, TurnoListSerial
 from .models import Turno
 from incidencia.models import Incidencia
 from .services import notificar_turno_perdido
-from .permission import EsJefe
+from guardiasServer.permissions import EsJefe
 # Create your views here.
 class TurnoView(viewsets.ModelViewSet):
     queryset = Turno.objects.all()
     serializer_class = TurnoSerializer
 
     def get_permissions(self): #solo los jefecitos pueden crear el turno y asignar 
-        if self.action == 'create':
+        if self.action in ('create', 'update', 'partial_update', 'destroy'):
             return [EsJefe()] 
         return [IsAuthenticated()]
     

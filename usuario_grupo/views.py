@@ -4,11 +4,12 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from .models import Usuario_grupo
 from .serializers import UsuarioGrupoSerializer
+from guardiasServer.permissions import SoloJefeEscribe
 
 class UsuarioGrupoView(viewsets.ModelViewSet):
     queryset = Usuario_grupo.objects.all()
     serializer_class = UsuarioGrupoSerializer
-    #permission_classes = [IsAuthenticated]
+    permission_classes = [SoloJefeEscribe]
 
     def list(self, request): #filtrar x grupo
         queryset = self.queryset

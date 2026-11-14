@@ -6,12 +6,20 @@ from django.utils import timezone
 from .models import Vacacion
 from .serializers import VacacionSerializer, SolicitarVacacionSerializer,dias_vacaciones_segun_antiguedad,dias_usados_en_año
 from usuario.models import Usuario
+from guardiasServer.permissions import EsJefe
 
 
 class VacacionView(viewsets.ModelViewSet):
     queryset = Vacacion.objects.all()
     serializer_class = VacacionSerializer
-    permission_classes = [IsAuthenticated]
+
+    def get_permissions(self):
+        # aprobar/rechazar y editar o crear directo: solo lider o encargado.
+        # Los demas piden vacaciones con la accion 'solicitar'.
+        if self.action in ('create', 'update', 'partial_update', 'destroy', 'aprobar', 'rechazar'):
+            return [EsJefe()]
+        return [IsAuthenticated()]
+
 
     def get_queryset(self):
         user = self.request.user
