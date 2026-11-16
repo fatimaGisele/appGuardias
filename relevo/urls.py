@@ -6,9 +6,9 @@ router = DefaultRouter()
 router.register(r'', RelevoView, basename='relevo')
 
 urlpatterns = [
-    path('', include(router.urls)),
+    path('mis-pendientes/', relevos_pendientes, name='relevo-pendientes'),
     path('<int:relevo_id>/aceptar/', aceptar_relevo , name='aceptar-relevo'),
     path('<int:relevo_id>/rechazar/', rechazar_relevo, name='rechazar-relevo'),
-    path('mis-pendientes/', relevos_pendientes, name='relevo-pendientes'),
+    path('', include(router.urls)),
 ]
 

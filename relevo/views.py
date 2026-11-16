@@ -1,4 +1,6 @@
+from django.db import transaction
 from django.utils import timezone
+from django.db.models import Q
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.decorators import api_view, permission_classes
 from django.shortcuts import get_object_or_404
@@ -9,7 +11,8 @@ from .models import Relevo
 from guardiasServer.notificaciones.services import enviar_msj_usuario, enviar_email
 from usuario_grupo.models import Usuario_grupo
 from relevo.models import Relevo
-from guardiasServer.permissions import SoloJefeEscribe
+from guardiasServer.permissions import SoloJefeEscribe, es_jefe
+
 
 # Create your views here.
 class RelevoView(viewsets.ModelViewSet):
@@ -17,30 +20,20 @@ class RelevoView(viewsets.ModelViewSet):
     serializer_class = RelevoSerializer
     permission_classes = [SoloJefeEscribe]
 
+    def get_queryset(self):
+        relevos = Relevo.objects.all()
+        if es_jefe(self.request.user):
+            return relevos
+        return relevos.filter(
+            Q(usuario_destino=self.request.user)| Q(usuario_origen_solicitante=self.request.user)
+        )
+
     def get_serializer_class(self):
-        if self.action =='create':
+        if self.action == 'create':
             return RelevoCreateSerializer
         return RelevoSerializer
+
     
-    #aceptar un relevo
-    def aceptar_relevo(self, request, pk=None):
-        relevo = get_object_or_404(relevo, pk=pk)
-        if relevo.estado != 'solicitado':
-            return Response(
-                {'error': 'Solo se pueden aceptar relevos en estado solicitado'},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-        relevo.estado = 'aceptado'
-        relevo.fecha_respuesta = timezone.now()
-        relevo.save()
-        serializer = self.get_serializer(relevo)
-        return Response(serializer.data)
-    
-    # Obtener unn lista derelevos pendientes
-    def relevos_pendientes(self, request):
-        pendientes = self.queryset.filter(estado='solicitado')
-        serializer = self.get_serializer(pendientes, many=True)
-        return Response(serializer.data)
     
 def notificar_jefes_relevo(turno, mensaje, mensaje_email, asunto):
     #"""Notifica a todos los jefes del grupo de escalamiento del turno"""
@@ -54,85 +47,98 @@ def notificar_jefes_relevo(turno, mensaje, mensaje_email, asunto):
         enviar_msj_usuario(usuario_grupo.usuario, mensaje)
         enviar_email(usuario_grupo.usuario,asunto,mensaje_email)
 
+def _obtener_relevo_pendiente(request, relevo_id):   
+    relevo = get_object_or_404(
+        Relevo.objects.select_for_update().select_related('turno_origen'),
+        idrelevo=relevo_id,
+        usuario_destino=request.user,
+    )
+    if relevo.estado != 'solicitado':
+        return None, Response({'error': 'Este relevo ya fue respondido'},
+                              status=status.HTTP_400_BAD_REQUEST)
+    if relevo.turno_origen.estado != 'perdido':
+        return None, Response({'error': 'El turno ya no necesita relevo'},
+                              status=status.HTTP_400_BAD_REQUEST)
+    return relevo, None
+
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def aceptar_relevo(request, relevo_id):
-    relevo = get_object_or_404(
-        Relevo,
-        idrelevo = relevo_id,
-        usuario_relevo = request.user,
-        estado = 'solicitado'
-    )
+    with transaction.atomic():
+        relevo, error = _obtener_relevo_pendiente(request, relevo_id)
+        if error:
+            return error
 
-    turno = relevo.turno_origen
-    turno.usuario_asignado = request.user
-    turno.estado = 'activo'
-    turno.save()
+        turno = relevo.turno_origen
+        turno.usuario_asignado = request.user
+        turno.estado = 'activo'
+        turno.save()
 
-    relevo.estado = 'aceptado'
-    relevo.fecha_respuesta = timezone.now()
-    relevo.save()
+        relevo.estado = 'aceptado'
+        relevo.fecha_respuesta = timezone.now()
+        relevo.save()
 
-    mensaje = (
-    f'*Relevo aceptado*\n'
-    f'El guardia {request.user.nombre} {request.user.apellido} '
-    f'aceptó cubrir el turno *{turno.nombre}*.\n'
-    f'Fecha: {turno.fecha_inicio.strftime("%d/%m/%Y %H:%M")}'
-    )
-    mensaje_email = (
-    f'Relevo aceptado: {turno.nombre}\n\n'
-    f'El guardia {request.user.nombre} {request.user.apellido} '
-    f'aceptó cubrir el turno {turno.nombre}.\n'
-    f'Fecha: {turno.fecha_inicio.strftime("%d/%m/%Y %H:%M")}'
-    )
-    notificar_jefes_relevo(turno, mensaje, mensaje_email, 'relevo aceptado')
-    return Response({'mensaje': 'Turno aceptado'}, status=status.HTTP_200_OK)
+        mensaje = (
+        f'*Relevo aceptado*\n'
+        f'El guardia {request.user.nombre} {request.user.apellido} '
+        f'aceptó cubrir el turno *{turno.nombre}*.\n'
+        f'Fecha: {turno.fecha_inicio.strftime("%d/%m/%Y %H:%M")}'
+        )
+        mensaje_email = (
+        f'Relevo aceptado: {turno.nombre}\n\n'
+        f'El guardia {request.user.nombre} {request.user.apellido} '
+        f'aceptó cubrir el turno {turno.nombre}.\n'
+        f'Fecha: {turno.fecha_inicio.strftime("%d/%m/%Y %H:%M")}'
+        )
+        notificar_jefes_relevo(turno, mensaje, mensaje_email, 'relevo aceptado')
+        return Response({'mensaje': 'Turno aceptado'}, status=status.HTTP_200_OK)
     
     
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def rechazar_relevo(request, relevo_id):
-    relevo = get_object_or_404(
-        Relevo,
-        idrelevo=relevo_id,
-        usuario_relevo=request.user,
-        estado='solicitado'
-    )
+    motivo = request.data.get('motivo') or 'Sin motivo especificado'
 
-    motivo = request.data.get('motivo', 'Sin motivo especificado')
-    relevo.estado = 'rechazado'
-    relevo.fecha_respuesta = timezone.now()
-    relevo.notas = request.data.get('motivo', '') 
-    relevo.save()
-    turno = relevo.turno_origen
-    mensaje = (
-    f'*Relevo rechazado*\n'
-    f'El guardia {request.user.nombre} {request.user.apellido} '
-    f'rechazó cubrir el turno *{turno.nombre}*.\n'
-    f'Fecha: {turno.fecha_inicio.strftime("%d/%m/%Y %H:%M")}\n'
-    f'Motivo: {motivo}'
-    )
-    mensaje_email = (
-    f'Relevo rechazado: {turno.nombre}\n\n'
-    f'El guardia {request.user.nombre} {request.user.apellido} '
-    f'rechazó cubrir el turno {turno.nombre}.\n'
-    f'Motivo: {motivo}'
-    )
-    notificar_jefes_relevo(turno, mensaje, mensaje_email, 'relevo rechazado')
-    return Response({'mensaje': 'Turno rechazado'}, status=status.HTTP_200_OK)
+    with transaction.atomic():
+        relevo, error = _obtener_relevo_pendiente(request, relevo_id)
+        if error:
+            return error
+
+        relevo.estado = 'rechazado'
+        relevo.fecha_respuesta = timezone.now()
+        relevo.notas = request.data.get('motivo', '') 
+        relevo.save()
+        turno = relevo.turno_origen
+        mensaje = (
+            f'*Relevo rechazado*\n'
+            f'El guardia {request.user.nombre} {request.user.apellido} '
+            f'rechazó cubrir el turno *{turno.nombre}*.\n'
+            f'Fecha: {turno.fecha_inicio.strftime("%d/%m/%Y %H:%M")}\n'
+            f'Motivo: {motivo}'
+        )
+        mensaje_email = (
+            f'Relevo rechazado: {turno.nombre}\n\n'
+            f'El guardia {request.user.nombre} {request.user.apellido} '
+            f'rechazó cubrir el turno {turno.nombre}.\n'
+            f'Motivo: {motivo}'
+        )
+        notificar_jefes_relevo(turno, mensaje, mensaje_email, 'relevo rechazado')
+        return Response({'mensaje': 'Turno rechazado'}, status=status.HTTP_200_OK)
 
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def relevos_pendientes(request):
     relevos = Relevo.objects.filter(
-        usuario_relevo = request.user,
-        estado = 'solicitado'
-    ).select_related('turno_origen')
+        usuario_destino = request.user,
+        estado = 'solicitado',
+        turno_origen__estado='perdido',
+    ).select_related('turno_origen').order_by('turno_origen__fecha_inicio')
     data = []
     for r in relevos:
         data.append({
             'idrelevo': r.idrelevo,
+            'idturno': r.turno_origen.idturno,
             'turno_nombre': r.turno_origen.nombre,
             'fecha_inicio': r.turno_origen.fecha_inicio,
             'fecha_fin': r.turno_origen.fecha_fin,
