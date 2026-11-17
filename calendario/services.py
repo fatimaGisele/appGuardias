@@ -5,19 +5,13 @@ from googleapiclient.discovery import build
 from google_auth_oauthlib.flow import Flow
 from django.conf import settings
 from .models import Calendario
+from datetime import datetime
 import logging
 from googleapiclient.errors import HttpError
 
 logging = logging.getLogger(__name__)
 TZ = 'America/Argentina/Buenos_Aires'
-CAMPO_EVENT_ID = 'google_event_id'
 
-def _servicio(turno):
-    calendario = turno.calendario
-    if not calendario or not calendario.config_api:
-        return None, None
-    service = build('calendar', 'v3', credentials=get_credentials(calendario))
-    return service, (calendario.calendarioId or 'primary')
 
 def get_flow():
     return Flow.from_client_secrets_file(
@@ -28,20 +22,25 @@ def get_flow():
 
 def get_credentials(calendario):
     config = json.loads(calendario.config_api)
+    expiry = None
+    if config.get('expira'):
+        expiry = datetime.fromisoformat(config['expiry'])
     cred = Credentials(
         token = config['token'],
         refresh_token= config['refresh_token'],
         token_uri = 'https://oauth2.googleapis.com/token',
         client_id = config['client_id'],
         client_secret = config['client_secret'],
-        scopes = settings.GOOGLE_SCOPES
+        scopes = settings.GOOGLE_SCOPES,
+        expiry = expiry
     )
-    if cred.expired and cred.refresh_token:
+    if cred.refresh_token and (cred.expiry is None or cred.expired):
         cred.refresh(Request())
-        #guardamos el token nuevoooo
+        #Si no sabemos cuando vence el token o si ya se vencio, se refresca y se guarda el token junto con l fecha de vencimientoooooooo ahhhhh
         config['token'] = cred.token
+        config['expiry'] = cred.expiry.isoformat() if cred.expiry else None
         calendario.config_api = json.dumps(config)
-        calendario.save()
+        calendario.save(update_fields=['config_api'])
 
     return cred
 
@@ -147,3 +146,19 @@ def cancelar_evento_google(turno):
     except Exception as e:
         logging.error(f"Error cancelando evento en Google Calendar: {e}")
         return False
+
+def guardar_evento_turno(turno):
+    # Crea evento en Google y guarda su id en el turno, para poder actualizarlo o cancelarlo despues.
+    event_id = crear_evento_google(turno)
+    if event_id:
+        turno.google_event_id = event_id
+        turno.save(update_fields=['google_event_id'])
+    return event_id
+
+
+def sincronizar_evento_turno(turno):
+    event_id = actualizar_evento_google(turno)
+    if event_id and event_id != turno.google_event_id:
+        turno.google_event_id = event_id
+        turno.save(update_fields=['google_event_id'])
+    return event_id

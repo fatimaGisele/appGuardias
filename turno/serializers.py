@@ -3,7 +3,7 @@ from .models import Turno
 from usuario.models import Usuario
 from relevo.models import Relevo
 from usuario.serializers import UserSerializer
-from calendario.services import crear_evento_google
+from calendario.services import guardar_evento_turno
 from turno.scheduler import programar_notificaciones_turno
 from vacacion.models import Vacacion
     
@@ -14,6 +14,7 @@ class TurnoSerializer(serializers.ModelSerializer):
     class Meta:
         model = Turno
         fields = '__all__'
+        read_only_fields = ['google_event_id']
 
 class TurnoCreateSerializer(serializers.ModelSerializer):
     usuario_relevo_id = serializers.PrimaryKeyRelatedField(
@@ -93,7 +94,7 @@ class TurnoCreateSerializer(serializers.ModelSerializer):
             motivo = 'relevo solicitado',
             estado = 'solicitado'
         )
-        crear_evento_google(turno)
+        guardar_evento_turno(turno)
         programar_notificaciones_turno(turno)
         return turno
 

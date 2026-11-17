@@ -9,6 +9,7 @@ from .models import Turno
 from incidencia.models import Incidencia
 from .services import notificar_turno_perdido
 from guardiasServer.permissions import EsJefe
+from calendario.services import sincronizar_evento_turno, cancelar_evento_google
 # Create your views here.
 class TurnoView(viewsets.ModelViewSet):
     queryset = Turno.objects.all()
@@ -25,6 +26,14 @@ class TurnoView(viewsets.ModelViewSet):
         elif self.action == 'create':
             return TurnoCreateSerializer
         return TurnoSerializer
+
+    def _update(self, serializer): #mantiene el evento de google 
+        turno = serializer.save()
+        sincronizar_evento_turno(turno)
+
+    def destroy_evento_google(self, instance): #cancela el evento de google
+        cancelar_evento_google(instance)
+        instance.delete()
     
     #'POST'
     def create(self, request):

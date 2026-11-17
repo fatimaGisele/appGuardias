@@ -1,6 +1,7 @@
 from django.db import transaction
 from django.utils import timezone
 from django.db.models import Q
+from calendario.services import sincronizar_evento_turno
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.decorators import api_view, permission_classes
 from django.shortcuts import get_object_or_404
@@ -77,6 +78,7 @@ def aceptar_relevo(request, relevo_id):
         relevo.estado = 'aceptado'
         relevo.fecha_respuesta = timezone.now()
         relevo.save()
+        sincronizar_evento_turno(turno) #el event de google pasa a tener como inv al relevo y pasa mail
 
         mensaje = (
         f'*Relevo aceptado*\n'
