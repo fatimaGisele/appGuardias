@@ -181,7 +181,7 @@ SIMPLE_JWT = {
 # Internationalization
 # https://docs.djangoproject.com/en/5.2/topics/i18n/
 
-LANGUAGE_CODE = 'en-us'
+LANGUAGE_CODE = 'America/Argentina/Buenos_Aires'
 
 TIME_ZONE = 'UTC'
 
